@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracking Order — ByCimo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #F4F8FD;
+      --surface: #FFFFFF;
+      --blue-soft: #DCEAFE;
+      --blue-accent: #2563EB;
+      --blue-dark: #1E3A8A;
+      --blue-border: #BFDBFE;
+      --arrive-badge: #D1FAE5;
+      --arrive-text: #065F46;
+      --otw-badge: #E0E7FF;
+      --otw-text: #3730A3;
+      --gray-badge: #F1F5F9;
+      --gray-text: #475569;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --line: #E2E8F0;
+      --red: #DC2626;
+      --green: #16A34A;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding-bottom: 48px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(244, 248, 253, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand-pill {
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 7px 15px;
+      border-radius: 999px;
+      white-space: nowrap;
+      border: 1px solid var(--blue-border);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-switch {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .lang-btn.active {
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+    }
+
+    .menu-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--blue-border);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 18px 16px 0;
+    }
+
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 18px rgba(37, 99, 235, 0.05);
+    }
+
+    .search-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .search-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .search-grid input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid #CBD5E1;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-grid input:focus {
+      border-color: var(--blue-accent);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 11px 18px;
+      border-radius: 10px;
+      border: none;
+      background: var(--blue-dark);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #CBD5E1;
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .ask-admin-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1.5px solid #93C5FD;
+      background: var(--surface);
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .showing-text {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 560px) {
+      .summary-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .summary-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 13px;
+    }
+
+    .summary-box span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .summary-box strong {
+      font-size: 14px;
+    }
+
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 660px;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #F8FAFC;
+    }
+
+    td {
+      padding: 13px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .name-cell {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .batch-cell {
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .item-cell {
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .qty-cell {
+      text-align: center;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .st-arrive {
+      background: var(--arrive-badge);
+      color: var(--arrive-text);
+    }
+
+    .st-otw {
+      background: var(--otw-badge);
+      color: var(--otw-text);
+    }
+
+    .st-default {
+      background: var(--gray-badge);
+      color: var(--gray-text);
+    }
+
+    .num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .minus {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .lunas {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .hint-scroll {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    .empty {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .payment-card {
+      background: var(--surface);
+      border: 1px solid var(--blue-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.04);
+    }
+
+    .payment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .payment-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
+
+    .payment-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .rek-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 540px) {
+      .rek-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .rek-box {
+      border: 1px solid var(--line);
+      background: #F8FAFC;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rek-bank {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .rek-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rek-name {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .copy-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--blue-border);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .copy-btn.copied {
+      background: #DCFCE7;
+      border-color: #86EFAC;
+      color: #166534;
+    }
+
+    .confirm-wa-btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #16A34A;
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand-pill" id="brandName">ByCimo</div>
+    <div class="topbar-right">
+      <div class="lang-switch">
+        <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+        <button class="lang-btn active" id="btnID" onclick="setLang('id')">ID</button>
+      </div>
+      <button class="menu-btn" onclick="focusSearch()" title="Search">≡</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="search-card">
+      <div class="search-grid">
+        <input type="text" id="nameInput" placeholder="Nama depan (contoh: Via)" onkeydown="if(event.key==='Enter') loadOrders()" />
+        <input type="email" id="emailInput" inputmode="email" autocomplete="email" placeholder="Email" onkeydown="if(event.key==='Enter') loadOrders()" />
+      </div>
+      <button class="btn-primary" id="searchBtn" onclick="loadOrders()">Cek Order</button>
+    </section>
+
+    <div class="toolbar">
+      <select class="filter-select" id="statusFilter" onchange="renderView()">
+        <option value="not_done">Status: Not Done</option>
+        <option value="all">Status: All</option>
+        <option value="done">Status: Done</option>
+      </select>
+
+      <a class="ask-admin-btn" id="adminLink" href="#" target="_blank" rel="noopener">
+        <span>💬</span> <span id="askAdminLabel">Ask Admin</span>
+      </a>
+    </div>
+
+    <div id="outputArea">
+      <div class="empty" id="initialHint">Masukkan <b>Nama Depan</b> dan <b>Email</b> lalu klik <b>Cek Order</b>.</div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
+    const ADMIN_WA = "6285810117201";
+    const BRAND_NAME = "ByCimo";
+
+    document.getElementById("brandName").textContent = BRAND_NAME;
+    document.getElementById("adminLink").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min ByCimo, mau tanya soal orderanku")}`;
+
+    let lang = "id";
+    let allOrders = [];
+    let lastSearchedName = "";
+
+    const i18n = {
+      id: {
+        namePlaceholder: "Nama depan (contoh: Via)",
+        emailPlaceholder: "Email",
+        initialHint: "Masukkan <b>Nama Depan</b> dan <b>Email</b> lalu klik <b>Cek Order</b>.",
+        cekBtn: "Cek Order",
+        loading: "Memuat data...",
+        missingInput: "Harap isi Nama Depan dan Email ya.",
+        notDone: "Status: Not Done",
+        allStatus: "Status: All",
+        doneStatus: "Status: Done",
+        askAdmin: "Ask Admin",
+        showing: (shown, total, name) => `Menampilkan ${shown} dari ${total} order untuk "${name}"`,
+        sumTotal: "Total",
+        sumDp: "DP",
+        sumPelunasan: "Pelunasan",
+        thName: "NAMA DEPAN",
+        thBatch: "NEGARA",
+        thItem: "ITEM",
+        thQty: "QTY",
+        thStatus: "STATUS",
+        thTotal: "TOTAL",
+        thDp: "DP",
+        thDue: "PELUNASAN",
+        empty: "Data tidak ditemukan. Pastikan Nama Depan dan Email sudah sesuai.",
+        scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
+        payTitle: "💳 Info Rekening Pelunasan ByCimo",
+        payNote: "QRIS > Rp 100.000 wajib +0.3%",
+        copyBtn: "Salin No. Rek",
+        copiedBtn: "Tersalin ✓",
+        confirmWa: (amount) => `Konfirmasi Pelunasan ke Admin (${amount})`
+      },
+      en: {
+        namePlaceholder: "First name (e.g. Via)",
+        emailPlaceholder: "Email",
+        initialHint: "Enter your <b>First Name</b> and <b>Email</b>, then click <b>Check Order</b>.",
+        cekBtn: "Check Order",
+        loading: "Loading...",
+        missingInput: "Please enter both your First Name and Email.",
+        notDone: "Status: Not Done",
+        allStatus: "Status: All",
+        doneStatus: "Status: Done",
+        askAdmin: "Ask Admin",
+        showing: (shown, total, name) => `Showing ${shown} of ${total} orders for "${name}"`,
+        sumTotal: "Total",
+        sumDp: "DP",
+        sumPelunasan: "Balance",
+        thName: "FIRST NAME",
+        thBatch: "COUNTRY",
+        thItem: "ITEM",
+        thQty: "QTY",
+        thStatus: "STATUS",
+        thTotal: "TOTAL",
+        thDp: "DP",
+        thDue: "BALANCE",
+        empty: "No matching orders found. Please check your First Name and Email.",
+        scrollHint: "Scroll table horizontally to view Qty, Total, DP, and Balance →",
+        payTitle: "💳 ByCimo Payment Account Details",
+        payNote: "QRIS > Rp 100,000 requires +0.3%",
+        copyBtn: "Copy Acc.",
+        copiedBtn: "Copied ✓",
+        confirmWa: (amount) => `Confirm Payment to Admin (${amount})`
+      }
+    };
+
+    function setLang(newLang) {
+      lang = newLang;
+      document.getElementById("btnID").classList.toggle("active", lang === "id");
+      document.getElementById("btnEN").classList.toggle("active", lang === "en");
+
+      const t = i18n[lang];
+      document.getElementById("nameInput").placeholder = t.namePlaceholder;
+      document.getElementById("emailInput").placeholder = t.emailPlaceholder;
+      const hint = document.getElementById("initialHint");
+      if (hint) hint.innerHTML = t.initialHint;
+      document.getElementById("searchBtn").textContent = t.cekBtn;
+      document.getElementById("askAdminLabel").textContent = t.askAdmin;
+
+      const sel = document.getElementById("statusFilter");
+      sel.options[0].text = t.notDone;
+      sel.options[1].text = t.allStatus;
+      sel.options[2].text = t.doneStatus;
+
+      if (lastSearchedName) renderView();
+    }
+
+    function focusSearch() {
+      const inp = document.getElementById("nameInput");
+      inp.focus();
+      inp.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function parseRupiah(val) {
+      if (typeof val === "number") return isNaN(val) ? 0 : val;
+      if (!val) return 0;
+      const cleaned = String(val)
+        .replace(/rp/gi, "")
+        .replace(/\s+/g, "")
+        .replace(/,/g, "")
+        .replace(/\.(?=\d{3}(\D|$))/g, "")
+        .replace(/[^0-9.-]/g, "");
+      const num = Number(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+
+    function formatRp(num) {
+      const sign = num < 0 ? "-" : "";
+      const abs = Math.abs(Number(num) || 0);
+      return `${sign}Rp ${abs.toLocaleString("id-ID")}`;
+    }
+
+    function getStatusClass(statusText) {
+      const s = (statusText || "").toLowerCase();
+      if (s.includes("arriv") || s.includes("indo") || s.includes("ready")) return "st-arrive";
+      if (s.includes("otw") || s.includes("ship")) return "st-otw";
+      return "st-default";
+    }
+
+    function getQtyValue(item) {
+      const raw = item.qty ?? item.QTY ?? item.Qty ?? item.jumlah ?? item.Jumlah ?? "";
+      return raw === "" || raw === null || raw === undefined ? "-" : raw;
+    }
+
+    function copyText(text, btnEl) {
+      const t = i18n[lang];
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(String(text)).then(() => {
+        const prev = btnEl.textContent;
+        btnEl.textContent = t.copiedBtn || "Tersalin ✓";
+        btnEl.classList.add("copied");
+        setTimeout(() => {
+          btnEl.textContent = prev || t.copyBtn;
+          btnEl.classList.remove("copied");
+        }, 1500);
+      });
+    }
+
+    async function loadOrders() {
+      const rawName = document.getElementById("nameInput").value.trim();
+      const rawEmail = document.getElementById("emailInput").value.trim();
+      const out = document.getElementById("outputArea");
+
+      if (!rawName || !rawEmail) {
+        out.innerHTML = `<div class="empty">${i18n[lang].missingInput}</div>`;
+        return;
+      }
+
+      const btn = document.getElementById("searchBtn");
+      btn.disabled = true;
+      btn.textContent = i18n[lang].loading;
+
+      try {
+        const res = await fetch(API_URL);
+        const rows = await res.json();
+        lastSearchedName = rawName;
+        const nameQuery = rawName.toLowerCase();
+        const emailQuery = rawEmail.toLowerCase();
+        allOrders = rows.filter(r =>
+          String(r.nama || "").toLowerCase().includes(nameQuery) &&
+          String(r.email || "").trim().toLowerCase() === emailQuery
+        );
+        renderView();
+      } catch (e) {
+        out.innerHTML = `<div class="empty">Gagal mengambil data dari Google Sheets. Cek kembali URL Apps Script.</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = i18n[lang].cekBtn;
+      }
+    }
+
+    function renderView() {
+      const t = i18n[lang];
+      const out = document.getElementById("outputArea");
+      const filterVal = document.getElementById("statusFilter").value;
+
+      const filtered = allOrders.filter(item => {
+        if (filterVal === "not_done") return item.done !== "yes" && item.done !== "done";
+        if (filterVal === "done") return item.done === "yes" || item.done === "done";
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        out.innerHTML = `<div class="empty">${t.empty}</div>`;
+        return;
+      }
+
+      let sumTotal = 0;
+      let sumDp = 0;
+      let sumPelunasan = 0;
+
+      const rowsHtml = filtered.map(item => {
+        const rawTotal = item.total ?? item.harga ?? item.Total ?? item.Harga ?? 0;
+        const rawDp = item.dp ?? item.DP ?? 0;
+        const totalVal = parseRupiah(rawTotal);
+        const dpVal = parseRupiah(rawDp);
+        const isDoneYes = (item.done || "").toString().trim().toLowerCase() === "yes";
+        const pelunasanVal = isDoneYes ? 0 : (totalVal - dpVal);
+        const qtyVal = getQtyValue(item);
+
+        sumTotal += totalVal;
+        sumDp += dpVal;
+        sumPelunasan += pelunasanVal;
+
+        const pelunasanClass = pelunasanVal < 0 ? "minus" : (pelunasanVal === 0 ? "lunas" : "");
+        const badgeClass = getStatusClass(item.status);
+        const lunasLabel = isDoneYes
+          ? `<span class="status-pill st-arrive">LUNAS</span>`
+          : `<span class="num ${pelunasanClass}">${pelunasanVal === 0 ? "Rp 0" : formatRp(pelunasanVal)}</span>`;
+
+        return `
+          <tr>
+            <td class="name-cell">${item.nama}</td>
+            <td class="batch-cell">${item.batch}</td>
+            <td class="item-cell">${item.item}</td>
+            <td class="qty-cell">${qtyVal}</td>
+            <td><span class="status-pill ${badgeClass}">${item.status}</span></td>
+            <td class="num">${totalVal === 0 ? "-" : formatRp(totalVal)}</td>
+            <td class="num">${formatRp(dpVal)}</td>
+            <td class="num">${lunasLabel}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const formattedDue = formatRp(sumPelunasan);
+      const waMsg = `Halo min ByCimo, aku mau konfirmasi pelunasan atas nama ${lastSearchedName} dengan total pelunasan ${formattedDue}.`;
+
+      out.innerHTML = `
+        <div class="showing-text">${t.showing(filtered.length, allOrders.length, lastSearchedName)}</div>
+        <div class="summary-strip">
+          <div class="summary-box">
+            <span>${t.sumTotal}</span>
+            <strong>${formatRp(sumTotal)}</strong>
+          </div>
+          <div class="summary-box">
+            <span>${t.sumDp}</span>
+            <strong>${formatRp(sumDp)}</strong>
+          </div>
+          <div class="summary-box">
+            <span>${t.sumPelunasan}</span>
+            <strong class="${sumPelunasan < 0 ? "minus" : (sumPelunasan === 0 ? "lunas" : "")}">${formattedDue}</strong>
+          </div>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>${t.thName}</th>
+                <th>${t.thBatch}</th>
+                <th>${t.thItem}</th>
+                <th style="text-align:center;">${t.thQty}</th>
+                <th>${t.thStatus}</th>
+                <th class="num">${t.thTotal}</th>
+                <th class="num">${t.thDp}</th>
+                <th class="num">${t.thDue}</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        <div class="hint-scroll">${t.scrollHint}</div>
+        <div class="payment-card">
+          <div class="payment-header">
+            <div class="payment-title">${t.payTitle}</div>
+            <div class="payment-note">${t.payNote}</div>
+          </div>
+          <div class="rek-list">
+            <div class="rek-box">
+              <div>
+                <div class="rek-bank">BCA</div>
+                <div class="rek-num">8555129579</div>
+                <div class="rek-name">a/n Nadifa Aulia</div>
+              </div>
+              <button class="copy-btn" onclick="copyText('8555129579', this)">${t.copyBtn}</button>
+            </div>
+            <div class="rek-box">
+              <div>
+                <div class="rek-bank">SEABANK</div>
+                <div class="rek-num">901061923808</div>
+                <div class="rek-name">a/n Nadifa Aulia</div>
+              </div>
+              <button class="copy-btn" onclick="copyText('901061923808', this)">${t.copyBtn}</button>
+            </div>
+          </div>
+          <a
+            class="confirm-wa-btn"
+            target="_blank"
+            rel="noopener"
+            href="https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}"
+          >
+            <span>📲</span> <span>${t.confirmWa(formattedDue)}</span>
+          </a>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
