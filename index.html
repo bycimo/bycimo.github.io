@@ -323,6 +323,9 @@
       </select>
 
       <div class="action-links">
+        <a class="pill-btn" id="shopeeBtn" href="#" target="_blank" rel="noopener">
+          <span>🛍️</span> <span>Shopee</span>
+        </a>
         <a class="pill-btn" id="igBtn" href="https://www.instagram.com/bycimo/" target="_blank" rel="noopener">
           <span>📸</span> <span>@bycimo</span>
         </a>
@@ -343,6 +346,7 @@
     const ADMIN_WA = "6281234567890";
     const BRAND_NAME = "bycimo";
     const IG_URL = "https://www.instagram.com/bycimo/";
+    const SHOPEE_URL = "https://shopee.co.id/bycimo"; // Ganti dengan link toko Shopee kamu
     // =========================
 
     let currentLang = "id";
@@ -401,6 +405,7 @@
     };
 
     document.getElementById("brandPill").textContent = BRAND_NAME;
+    document.getElementById("shopeeBtn").href = SHOPEE_URL;
     document.getElementById("igBtn").href = IG_URL;
     document.getElementById("adminBtn").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
 
