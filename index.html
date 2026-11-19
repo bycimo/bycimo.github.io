@@ -1,28 +1,24 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tracking Order — ByCimo</title>
+  <title>Tracking Order — bycimo</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #F4F8FD;
-      --surface: #FFFFFF;
-      --blue-soft: #DCEAFE;
-      --blue-accent: #2563EB;
-      --blue-dark: #1E3A8A;
-      --blue-border: #BFDBFE;
-      --arrive-badge: #D1FAE5;
-      --arrive-text: #065F46;
-      --otw-badge: #E0E7FF;
-      --otw-text: #3730A3;
-      --gray-badge: #F1F5F9;
-      --gray-text: #475569;
-      --ink: #0F172A;
-      --muted: #64748B;
-      --line: #E2E8F0;
+      --bg: #FFF9FA;
+      --card: #FFFFFF;
+      --pink: #F7D6DF;
+      --pink-badge: #F5C2D1;
+      --pink-ink: #9D3758;
+      --blue-badge: #DBEAFE;
+      --blue-ink: #1D4ED8;
+      --gray-badge: #F1F3F5;
+      --gray-ink: #495057;
+      --ink: #221E20;
+      --muted: #766E71;
+      --border: #F0E3E7;
       --red: #DC2626;
       --green: #16A34A;
     }
@@ -31,7 +27,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
@@ -44,10 +40,10 @@
     .topbar {
       position: sticky;
       top: 0;
-      z-index: 20;
-      background: rgba(244, 248, 253, 0.92);
+      z-index: 10;
+      background: rgba(255, 249, 250, 0.95);
       backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--line);
+      border-bottom: 1px solid var(--border);
       padding: 12px 16px;
       display: flex;
       align-items: center;
@@ -55,79 +51,26 @@
       gap: 10px;
     }
 
-    .brand-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
     .brand-pill {
-      background: var(--blue-soft);
-      color: var(--blue-dark);
+      background: var(--pink);
+      color: var(--ink);
       font-weight: 700;
       font-size: 14px;
-      padding: 6px 14px;
+      padding: 7px 14px;
       border-radius: 999px;
-      white-space: nowrap;
-      border: 1px solid var(--blue-border);
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
       text-decoration: none;
     }
 
-    .brand-logo-img {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      object-fit: cover;
-      display: none;
-    }
-
-    .brand-logo-svg {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-    }
-
-    .ig-pill {
-      background: var(--surface);
-      color: var(--blue-dark);
-      font-weight: 700;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      white-space: nowrap;
-      border: 1px solid var(--blue-border);
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .ig-pill:hover {
-      background: var(--blue-soft);
-      border-color: #93C5FD;
-    }
-
-    .ig-icon-svg {
-      width: 14px;
-      height: 14px;
-      flex-shrink: 0;
-    }
-
-    .topbar-right {
+    .top-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .lang-switch {
+    .lang-box {
       display: flex;
-      background: var(--surface);
-      border: 1px solid var(--line);
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 999px;
       padding: 2px;
     }
@@ -135,93 +78,74 @@
     .lang-btn {
       border: none;
       background: transparent;
+      color: var(--muted);
       font-size: 11px;
       font-weight: 700;
       padding: 5px 9px;
       border-radius: 999px;
       cursor: pointer;
-      color: var(--muted);
     }
 
     .lang-btn.active {
-      background: var(--blue-soft);
-      color: var(--blue-dark);
+      background: var(--pink);
+      color: var(--ink);
     }
 
     .menu-btn {
       width: 34px;
       height: 34px;
       border-radius: 10px;
-      border: 1px solid var(--blue-border);
-      background: var(--blue-soft);
-      color: var(--blue-dark);
+      border: 1px solid var(--border);
+      background: var(--pink);
+      color: var(--ink);
       font-weight: 700;
       cursor: pointer;
     }
 
-    .wrap {
-      max-width: 760px;
+    .container {
+      max-width: 720px;
       margin: 0 auto;
       padding: 18px 16px 0;
     }
 
-    .search-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
+    .search-box {
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 4px 18px rgba(37, 99, 235, 0.05);
-    }
-
-    .search-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
       gap: 8px;
-      margin-bottom: 10px;
+      box-shadow: 0 4px 16px rgba(157, 55, 88, 0.04);
     }
 
-    @media (max-width: 480px) {
-      .search-grid {
-        grid-template-columns: 1fr;
-      }
-      .ig-handle-text {
-        display: none;
-      }
-    }
-
-    .search-grid input {
-      width: 100%;
+    .search-box input {
+      flex: 1;
       padding: 11px 14px;
       border-radius: 10px;
-      border: 1px solid #CBD5E1;
+      border: 1px solid #E6D5DA;
       font-size: 14px;
+      color: var(--ink);
       outline: none;
-      transition: border-color 0.15s;
     }
 
-    .search-grid input:focus {
-      border-color: var(--blue-accent);
+    .search-box input:focus {
+      border-color: #D48CA3;
     }
 
-    .btn-primary {
-      width: 100%;
-      padding: 11px 18px;
+    .btn-check {
+      padding: 11px 16px;
       border-radius: 10px;
       border: none;
-      background: var(--blue-dark);
-      color: #fff;
+      background: var(--ink);
+      color: #FFFFFF;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s;
+      white-space: nowrap;
     }
 
-    .btn-primary:hover {
-      opacity: 0.92;
-    }
-
-    .btn-primary:disabled {
+    .btn-check:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
@@ -238,21 +162,27 @@
     .filter-select {
       padding: 8px 14px;
       border-radius: 999px;
-      border: 1px solid #CBD5E1;
-      background: var(--surface);
+      border: 1px solid #E6D5DA;
+      background: var(--card);
+      color: var(--ink);
       font-size: 12px;
       font-weight: 600;
-      color: var(--ink);
       outline: none;
-      cursor: pointer;
     }
 
-    .ask-admin-btn {
+    .action-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
       padding: 8px 14px;
       border-radius: 999px;
-      border: 1.5px solid #93C5FD;
-      background: var(--surface);
-      color: var(--blue-dark);
+      border: 1.5px solid #EAB5C5;
+      background: var(--card);
+      color: var(--ink);
       font-size: 12px;
       font-weight: 700;
       text-decoration: none;
@@ -261,47 +191,41 @@
       gap: 6px;
     }
 
-    .showing-text {
+    .meta-line {
       font-size: 12.5px;
       font-weight: 700;
-      color: var(--ink);
       margin-bottom: 10px;
+      color: var(--ink);
     }
 
-    .summary-strip {
+    .summary-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
-    @media (max-width: 560px) {
-      .summary-strip {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .summary-box {
-      background: var(--surface);
-      border: 1px solid var(--line);
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 11px 13px;
     }
 
-    .summary-box span {
+    .summary-card span {
       display: block;
       font-size: 11px;
       color: var(--muted);
       margin-bottom: 3px;
     }
 
-    .summary-box strong {
+    .summary-card strong {
       font-size: 14px;
     }
 
-    .table-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 14px;
       overflow-x: auto;
     }
@@ -309,24 +233,24 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 660px;
+      min-width: 560px;
       font-size: 13px;
     }
 
     th {
       text-align: left;
       font-size: 11px;
+      text-transform: uppercase;
       letter-spacing: 0.4px;
       color: var(--muted);
-      text-transform: uppercase;
-      padding: 12px 12px;
-      border-bottom: 1px solid var(--line);
-      background: #F8FAFC;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: #FFFCFD;
     }
 
     td {
       padding: 13px 12px;
-      border-bottom: 1px solid #F1F5F9;
+      border-bottom: 1px solid #F7EFF2;
       vertical-align: middle;
     }
 
@@ -334,29 +258,12 @@
       border-bottom: none;
     }
 
-    .name-cell {
-      font-weight: 700;
-      white-space: nowrap;
-    }
+    .col-name { font-weight: 700; white-space: nowrap; }
+    .col-batch { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .col-item { font-weight: 500; line-height: 1.35; }
+    .col-note { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    .batch-cell {
-      color: var(--muted);
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .item-cell {
-      font-weight: 500;
-      line-height: 1.35;
-    }
-
-    .qty-cell {
-      text-align: center;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .status-pill {
+    .badge {
       display: inline-block;
       padding: 4px 10px;
       border-radius: 999px;
@@ -365,20 +272,9 @@
       white-space: nowrap;
     }
 
-    .st-arrive {
-      background: var(--arrive-badge);
-      color: var(--arrive-text);
-    }
-
-    .st-otw {
-      background: var(--otw-badge);
-      color: var(--otw-text);
-    }
-
-    .st-default {
-      background: var(--gray-badge);
-      color: var(--gray-text);
-    }
+    .b-arrive { background: var(--pink-badge); color: var(--pink-ink); }
+    .b-otw { background: var(--blue-badge); color: var(--blue-ink); }
+    .b-other { background: var(--gray-badge); color: var(--gray-ink); }
 
     .num {
       text-align: right;
@@ -386,529 +282,289 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .minus {
-      color: var(--red);
-      font-weight: 700;
-    }
+    .neg { color: var(--red); font-weight: 700; }
+    .done-ok { color: var(--green); font-weight: 700; }
 
-    .lunas {
-      color: var(--green);
-      font-weight: 700;
-    }
-
-    .hint-scroll {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 8px;
-      text-align: right;
-    }
-
-    .empty {
-      background: var(--surface);
-      border: 1px solid var(--line);
+    .state-box {
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 28px 16px;
+      padding: 26px 16px;
       text-align: center;
       font-size: 13px;
       color: var(--muted);
-    }
-
-    .payment-card {
-      background: var(--surface);
-      border: 1px solid var(--blue-border);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-top: 14px;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.04);
-    }
-
-    .payment-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .payment-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--blue-dark);
-    }
-
-    .payment-note {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .rek-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    @media (max-width: 540px) {
-      .rek-list {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .rek-box {
-      border: 1px solid var(--line);
-      background: #F8FAFC;
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .rek-bank {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-
-    .rek-num {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--ink);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .rek-name {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .copy-btn {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--blue-border);
-      background: var(--blue-soft);
-      color: var(--blue-dark);
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .copy-btn.copied {
-      background: #DCFCE7;
-      border-color: #86EFAC;
-      color: #166534;
-    }
-
-    .confirm-wa-btn {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      background: #16A34A;
-      color: #fff;
-      font-size: 12.5px;
-      font-weight: 700;
-      text-decoration: none;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
-
   <header class="topbar">
-    <div class="brand-group">
-      <a class="brand-pill" href="#" onclick="focusSearch(); return false;">
-        <img id="brandLogoImg" class="brand-logo-img" alt="ByCimo Logo" />
-        <svg id="brandLogoSvg" class="brand-logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <path d="M16 10a4 4 0 0 1-8 0"></path>
-        </svg>
-        <span id="brandName">ByCimo</span>
-      </a>
-      <a class="ig-pill" id="igLink" href="https://instagram.com/bycimo.id" target="_blank" rel="noopener" title="Instagram ByCimo">
-        <svg class="ig-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-        </svg>
-        <span class="ig-handle-text" id="igHandleLabel">@bycimo.id</span>
-      </a>
-    </div>
-    <div class="topbar-right">
-      <div class="lang-switch">
-        <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
-        <button class="lang-btn active" id="btnID" onclick="setLang('id')">ID</button>
+    <a href="#" class="brand-pill" id="brandPill" onclick="resetView(event)">bycimo</a>
+    <div class="top-actions">
+      <div class="lang-box">
+        <button type="button" class="lang-btn" id="langEN" onclick="changeLang('en')">EN</button>
+        <button type="button" class="lang-btn active" id="langID" onclick="changeLang('id')">ID</button>
       </div>
-      <button class="menu-btn" onclick="focusSearch()" title="Search">≡</button>
+      <button type="button" class="menu-btn" onclick="focusInput()" aria-label="Search">≡</button>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="search-card">
-      <div class="search-grid">
-        <input type="text" id="nameInput" placeholder="Nama depan (contoh: Via)" onkeydown="if(event.key==='Enter') loadOrders()" />
-        <input type="email" id="emailInput" inputmode="email" autocomplete="email" placeholder="Email" onkeydown="if(event.key==='Enter') loadOrders()" />
-      </div>
-      <button class="btn-primary" id="searchBtn" onclick="loadOrders()">Cek Order</button>
-    </section>
+  <main class="container">
+    <form class="search-box" onsubmit="event.preventDefault(); searchOrders();">
+      <input type="text" id="searchInput" placeholder="Masukkan nama pembeli..." autocomplete="off" />
+      <button type="submit" class="btn-check" id="checkBtn">Cek Order</button>
+    </form>
 
     <div class="toolbar">
-      <select class="filter-select" id="statusFilter" onchange="renderView()">
+      <select class="filter-select" id="statusFilter" onchange="renderOrders()">
         <option value="not_done">Status: Not Done</option>
         <option value="all">Status: All</option>
         <option value="done">Status: Done</option>
       </select>
 
-      <a class="ask-admin-btn" id="adminLink" href="#" target="_blank" rel="noopener">
-        <span>💬</span> <span id="askAdminLabel">Ask Admin</span>
-      </a>
+      <div class="action-links">
+        <a class="pill-btn" id="igBtn" href="https://www.instagram.com/bycimo/" target="_blank" rel="noopener">
+          <span>📸</span> <span>@bycimo</span>
+        </a>
+        <a class="pill-btn" id="adminBtn" href="#" target="_blank" rel="noopener">
+          <span>💬</span> <span id="adminLabel">Ask Admin</span>
+        </a>
+      </div>
     </div>
 
-    <div id="outputArea">
-      <div class="empty" id="initialHint">Masukkan <b>Nama Depan</b> dan <b>Email</b> lalu klik <b>Cek Order</b>.</div>
+    <div id="contentArea">
+      <div class="state-box" id="welcomeBox">Ketik nama pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.</div>
     </div>
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
-    const ADMIN_WA = "6285810117201";
-    const BRAND_NAME = "ByCimo";
-    const BRAND_LOGO_URL = ""; // Opsional: isi link gambar logo ByCimo (contoh: "./logo-bycimo.png" atau link Google Drive/CDN). Kosongkan untuk pakai ikon bawaan.
-    const IG_USERNAME = "bycimo.id"; // Ganti jika username Instagram ByCimo berbeda
+    // === KONFIGURASI UTAMA ===
+    const API_URL = "PASTE_URL_WEB_APP_KAMU_DI_SINI";
+    const ADMIN_WA = "6281234567890";
+    const BRAND_NAME = "bycimo";
+    const IG_URL = "https://www.instagram.com/bycimo/";
+    // =========================
 
-    document.getElementById("brandName").textContent = BRAND_NAME;
-    document.getElementById("adminLink").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min ByCimo, mau tanya soal orderanku")}`;
+    let currentLang = "id";
+    let ordersData = [];
+    let lastQuery = "";
 
-    const cleanIg = IG_USERNAME.replace(/^@/, "");
-    document.getElementById("igLink").href = `https://instagram.com/${cleanIg}`;
-    document.getElementById("igHandleLabel").textContent = `@${cleanIg}`;
-
-    if (BRAND_LOGO_URL.trim()) {
-      const imgEl = document.getElementById("brandLogoImg");
-      const svgEl = document.getElementById("brandLogoSvg");
-      imgEl.src = BRAND_LOGO_URL.trim();
-      imgEl.style.display = "inline-block";
-      imgEl.onload = () => { if (svgEl) svgEl.style.display = "none"; };
-      imgEl.onerror = () => { imgEl.style.display = "none"; };
-    }
-
-    let lang = "id";
-    let allOrders = [];
-    let lastSearchedName = "";
-
-    const i18n = {
+    const TEXT = {
       id: {
-        namePlaceholder: "Nama depan (contoh: Via)",
-        emailPlaceholder: "Email",
-        initialHint: "Masukkan <b>Nama Depan</b> dan <b>Email</b> lalu klik <b>Cek Order</b>.",
-        cekBtn: "Cek Order",
-        loading: "Memuat data...",
-        missingInput: "Harap isi Nama Depan dan Email ya.",
+        placeholder: "Masukkan nama pembeli...",
+        check: "Cek Order",
+        loading: "Mencari data...",
+        admin: "Ask Admin",
         notDone: "Status: Not Done",
-        allStatus: "Status: All",
-        doneStatus: "Status: Done",
-        askAdmin: "Ask Admin",
-        showing: (shown, total, name) => `Menampilkan ${shown} dari ${total} order untuk "${name}"`,
-        sumTotal: "Total",
-        sumDp: "DP",
-        sumPelunasan: "Pelunasan",
-        thName: "NAMA DEPAN",
-        thBatch: "NEGARA",
+        all: "Status: All",
+        done: "Status: Done",
+        welcome: 'Ketik nama pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.',
+        emptyName: "Masukkan nama pembeli terlebih dahulu.",
+        missingApi: "URL Google Apps Script (<code>API_URL</code>) belum diisi pada file <code>index.html</code>.",
+        fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b>.",
+        notFound: "Data order tidak ditemukan untuk nama atau filter tersebut.",
+        showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk "${q}"`,
+        sumDue: "Sisa Pelunasan",
+        sumTotal: "Total Nominal",
+        thName: "NAME",
+        thBatch: "BATCH",
         thItem: "ITEM",
-        thQty: "QTY",
         thStatus: "STATUS",
-        thTotal: "TOTAL",
-        thDp: "DP",
-        thDue: "PELUNASAN",
-        empty: "Data tidak ditemukan. Pastikan Nama Depan dan Email sudah sesuai.",
-        scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
-        payTitle: "💳 Info Rekening Pelunasan ByCimo (Arrived INA)",
-        payNote: "Hanya item Arrived INA • QRIS > Rp 100.000 wajib +0.3%",
-        copyBtn: "Salin No. Rek",
-        copiedBtn: "Tersalin ✓",
-        confirmWa: (amount) => `Konfirmasi Pelunasan ke Admin (${amount})`
+        thPaid: "PAID",
+        thDue: "BALANCE",
+        thTotal: "TOTAL"
       },
       en: {
-        namePlaceholder: "First name (e.g. Via)",
-        emailPlaceholder: "Email",
-        initialHint: "Enter your <b>First Name</b> and <b>Email</b>, then click <b>Check Order</b>.",
-        cekBtn: "Check Order",
-        loading: "Loading...",
-        missingInput: "Please enter both your First Name and Email.",
+        placeholder: "Enter buyer name...",
+        check: "Check Order",
+        loading: "Searching...",
+        admin: "Ask Admin",
         notDone: "Status: Not Done",
-        allStatus: "Status: All",
-        doneStatus: "Status: Done",
-        askAdmin: "Ask Admin",
-        showing: (shown, total, name) => `Showing ${shown} of ${total} orders for "${name}"`,
-        sumTotal: "Total",
-        sumDp: "DP",
-        sumPelunasan: "Balance",
-        thName: "FIRST NAME",
-        thBatch: "COUNTRY",
+        all: "Status: All",
+        done: "Status: Done",
+        welcome: 'Type a buyer name and tap <b>Check Order</b> to view item status and balance.',
+        emptyName: "Please enter a buyer name first.",
+        missingApi: "Google Apps Script URL (<code>API_URL</code>) is not set in <code>index.html</code>.",
+        fetchErr: "Failed to load data from Google Sheets. Make sure Web App access is set to <b>Anyone</b>.",
+        notFound: "No orders found for this name or filter.",
+        showing: (a, b, q) => `Showing ${a} of ${b} orders for "${q}"`,
+        sumDue: "Balance Due",
+        sumTotal: "Total Amount",
+        thName: "NAME",
+        thBatch: "BATCH",
         thItem: "ITEM",
-        thQty: "QTY",
         thStatus: "STATUS",
-        thTotal: "TOTAL",
-        thDp: "DP",
+        thPaid: "PAID",
         thDue: "BALANCE",
-        empty: "No matching orders found. Please check your First Name and Email.",
-        scrollHint: "Scroll table horizontally to view Qty, Total, DP, and Balance →",
-        payTitle: "💳 ByCimo Payment Account Details (Arrived INA)",
-        payNote: "Arrived INA items only • QRIS > Rp 100,000 requires +0.3%",
-        copyBtn: "Copy Acc.",
-        copiedBtn: "Copied ✓",
-        confirmWa: (amount) => `Confirm Payment to Admin (${amount})`
+        thTotal: "TOTAL"
       }
     };
 
-    function setLang(newLang) {
-      lang = newLang;
-      document.getElementById("btnID").classList.toggle("active", lang === "id");
-      document.getElementById("btnEN").classList.toggle("active", lang === "en");
+    document.getElementById("brandPill").textContent = BRAND_NAME;
+    document.getElementById("igBtn").href = IG_URL;
+    document.getElementById("adminBtn").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
 
-      const t = i18n[lang];
-      document.getElementById("nameInput").placeholder = t.namePlaceholder;
-      document.getElementById("emailInput").placeholder = t.emailPlaceholder;
-      const hint = document.getElementById("initialHint");
-      if (hint) hint.innerHTML = t.initialHint;
-      document.getElementById("searchBtn").textContent = t.cekBtn;
-      document.getElementById("askAdminLabel").textContent = t.askAdmin;
+    function focusInput() {
+      const el = document.getElementById("searchInput");
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function resetView(e) {
+      if (e) e.preventDefault();
+      lastQuery = "";
+      ordersData = [];
+      document.getElementById("searchInput").value = "";
+      document.getElementById("contentArea").innerHTML = `<div class="state-box">${TEXT[currentLang].welcome}</div>`;
+    }
+
+    function changeLang(lang) {
+      currentLang = lang;
+      document.getElementById("langID").classList.toggle("active", lang === "id");
+      document.getElementById("langEN").classList.toggle("active", lang === "en");
+
+      const t = TEXT[lang];
+      document.getElementById("searchInput").placeholder = t.placeholder;
+      document.getElementById("checkBtn").textContent = t.check;
+      document.getElementById("adminLabel").textContent = t.admin;
 
       const sel = document.getElementById("statusFilter");
       sel.options[0].text = t.notDone;
-      sel.options[1].text = t.allStatus;
-      sel.options[2].text = t.doneStatus;
+      sel.options[1].text = t.all;
+      sel.options[2].text = t.done;
 
-      if (lastSearchedName) renderView();
+      if (lastQuery) {
+        renderOrders();
+      } else {
+        document.getElementById("contentArea").innerHTML = `<div class="state-box">${t.welcome}</div>`;
+      }
     }
 
-    function focusSearch() {
-      const inp = document.getElementById("nameInput");
-      inp.focus();
-      inp.scrollIntoView({ behavior: "smooth", block: "center" });
+    function formatIDR(val) {
+      const num = Number(val) || 0;
+      const prefix = num < 0 ? "-Rp " : "Rp ";
+      return prefix + Math.abs(num).toLocaleString("id-ID");
     }
 
-    function parseRupiah(val) {
-      if (typeof val === "number") return isNaN(val) ? 0 : val;
-      if (!val) return 0;
-      const cleaned = String(val)
-        .replace(/rp/gi, "")
-        .replace(/\s+/g, "")
-        .replace(/,/g, "")
-        .replace(/\.(?=\d{3}(\D|$))/g, "")
-        .replace(/[^0-9.-]/g, "");
-      const num = Number(cleaned);
-      return isNaN(num) ? 0 : num;
+    function statusBadgeClass(status) {
+      const s = String(status || "").toLowerCase();
+      if (s.includes("arriv") || s.includes("indo") || s.includes("ready") || s.includes("wh")) return "b-arrive";
+      if (s.includes("otw") || s.includes("ship") || s.includes("flight") || s.includes("sea")) return "b-otw";
+      return "b-other";
     }
 
-    function formatRp(num) {
-      const sign = num < 0 ? "-" : "";
-      const abs = Math.abs(Number(num) || 0);
-      return `${sign}Rp ${abs.toLocaleString("id-ID")}`;
-    }
+    async function searchOrders() {
+      const t = TEXT[currentLang];
+      const q = document.getElementById("searchInput").value.trim();
+      const area = document.getElementById("contentArea");
+      const btn = document.getElementById("checkBtn");
 
-    function getStatusClass(statusText) {
-      const s = (statusText || "").toLowerCase();
-      if (s.includes("arriv") || s.includes("indo") || s.includes("ready")) return "st-arrive";
-      if (s.includes("otw") || s.includes("ship")) return "st-otw";
-      return "st-default";
-    }
-
-    function getQtyValue(item) {
-      const raw = item.qty ?? item.QTY ?? item.Qty ?? item.jumlah ?? item.Jumlah ?? "";
-      return raw === "" || raw === null || raw === undefined ? "-" : raw;
-    }
-
-    function copyText(text, btnEl) {
-      const t = i18n[lang];
-      if (!navigator.clipboard) return;
-      navigator.clipboard.writeText(String(text)).then(() => {
-        const prev = btnEl.textContent;
-        btnEl.textContent = t.copiedBtn || "Tersalin ✓";
-        btnEl.classList.add("copied");
-        setTimeout(() => {
-          btnEl.textContent = prev || t.copyBtn;
-          btnEl.classList.remove("copied");
-        }, 1500);
-      });
-    }
-
-    async function loadOrders() {
-      const rawName = document.getElementById("nameInput").value.trim();
-      const rawEmail = document.getElementById("emailInput").value.trim();
-      const out = document.getElementById("outputArea");
-
-      if (!rawName || !rawEmail) {
-        out.innerHTML = `<div class="empty">${i18n[lang].missingInput}</div>`;
+      if (!q) {
+        area.innerHTML = `<div class="state-box">${t.emptyName}</div>`;
         return;
       }
 
-      const btn = document.getElementById("searchBtn");
+      if (!API_URL || API_URL.includes("PASTE_URL_WEB_APP_KAMU_DI_SINI")) {
+        area.innerHTML = `<div class="state-box">${t.missingApi}</div>`;
+        return;
+      }
+
       btn.disabled = true;
-      btn.textContent = i18n[lang].loading;
+      btn.textContent = t.loading;
 
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Network response was not ok");
         const rows = await res.json();
-        lastSearchedName = rawName;
-        const nameQuery = rawName.toLowerCase();
-        const emailQuery = rawEmail.toLowerCase();
-        allOrders = rows.filter(r =>
-          String(r.nama || "").toLowerCase().includes(nameQuery) &&
-          String(r.email || "").trim().toLowerCase() === emailQuery
-        );
-        renderView();
-      } catch (e) {
-        out.innerHTML = `<div class="empty">Gagal mengambil data dari Google Sheets. Cek kembali URL Apps Script.</div>`;
+        lastQuery = q;
+        ordersData = Array.isArray(rows)
+          ? rows.filter(r => String(r.nama || "").toLowerCase().includes(q.toLowerCase()))
+          : [];
+        renderOrders();
+      } catch (err) {
+        area.innerHTML = `<div class="state-box">${t.fetchErr}</div>`;
       } finally {
         btn.disabled = false;
-        btn.textContent = i18n[lang].cekBtn;
+        btn.textContent = TEXT[currentLang].check;
       }
     }
 
-    function renderView() {
-      const t = i18n[lang];
-      const out = document.getElementById("outputArea");
-      const filterVal = document.getElementById("statusFilter").value;
+    function renderOrders() {
+      const t = TEXT[currentLang];
+      const area = document.getElementById("contentArea");
+      const filter = document.getElementById("statusFilter").value;
 
-      const filtered = allOrders.filter(item => {
-        if (filterVal === "not_done") return item.done !== "yes" && item.done !== "done";
-        if (filterVal === "done") return item.done === "yes" || item.done === "done";
+      const filtered = ordersData.filter(item => {
+        const doneFlag = String(item.done || "").trim().toLowerCase();
+        const isDone = doneFlag === "yes" || doneFlag === "done" || doneFlag === "true" || doneFlag === "lunas";
+        if (filter === "not_done") return !isDone;
+        if (filter === "done") return isDone;
         return true;
       });
 
       if (filtered.length === 0) {
-        out.innerHTML = `<div class="empty">${t.empty}</div>`;
+        area.innerHTML = `<div class="state-box">${t.notFound}</div>`;
         return;
       }
 
-      let sumTotal = 0;
-      let sumDp = 0;
-      let sumPelunasan = 0;
-      let sumArrivedPelunasan = 0;
+      let totalDue = 0;
+      let totalAmt = 0;
 
       const rowsHtml = filtered.map(item => {
-        const rawTotal = item.total ?? item.harga ?? item.Total ?? item.Harga ?? 0;
-        const rawDp = item.dp ?? item.DP ?? 0;
-        const totalVal = parseRupiah(rawTotal);
-        const dpVal = parseRupiah(rawDp);
-        const isDoneYes = (item.done || "").toString().trim().toLowerCase() === "yes";
-        const pelunasanVal = isDoneYes ? 0 : (totalVal - dpVal);
-        const qtyVal = getQtyValue(item);
+        const due = Number(item.pelunasan) || 0;
+        const total = Number(item.total) || 0;
+        const paid = Number(item.sudahBayar) || 0;
 
-        const statusLower = String(item.status || "").toLowerCase();
-        const isArrivedIna =
-          statusLower.includes("arrived ina") ||
-          statusLower.includes("arrive") ||
-          statusLower.includes("indo");
+        totalDue += due;
+        totalAmt += total;
 
-        if (!isDoneYes && isArrivedIna) {
-          sumArrivedPelunasan += pelunasanVal;
-        }
-
-        sumTotal += totalVal;
-        sumDp += dpVal;
-        sumPelunasan += pelunasanVal;
-
-        const pelunasanClass = pelunasanVal < 0 ? "minus" : (pelunasanVal === 0 ? "lunas" : "");
-        const badgeClass = getStatusClass(item.status);
-        const lunasLabel = isDoneYes
-          ? `<span class="status-pill st-arrive">LUNAS</span>`
-          : `<span class="num ${pelunasanClass}">${pelunasanVal === 0 ? "Rp 0" : formatRp(pelunasanVal)}</span>`;
+        const dueClass = due < 0 ? "neg" : (due === 0 ? "done-ok" : "");
+        const badgeCls = statusBadgeClass(item.status);
+        const noteHtml = item.catatan ? `<span class="col-note">${item.catatan}</span>` : "";
 
         return `
           <tr>
-            <td class="name-cell">${item.nama}</td>
-            <td class="batch-cell">${item.batch}</td>
-            <td class="item-cell">${item.item}</td>
-            <td class="qty-cell">${qtyVal}</td>
-            <td><span class="status-pill ${badgeClass}">${item.status}</span></td>
-            <td class="num">${totalVal === 0 ? "-" : formatRp(totalVal)}</td>
-            <td class="num">${formatRp(dpVal)}</td>
-            <td class="num">${lunasLabel}</td>
+            <td class="col-name">${item.nama || "-"}</td>
+            <td class="col-batch">${item.batch || "-"}</td>
+            <td class="col-item">${item.item || "-"}${noteHtml}</td>
+            <td><span class="badge ${badgeCls}">${item.status || "-"}</span></td>
+            <td class="num">${formatIDR(paid)}</td>
+            <td class="num ${dueClass}">${formatIDR(due)}</td>
+            <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
           </tr>
         `;
       }).join("");
 
-      const formattedDue = formatRp(sumArrivedPelunasan);
-      const waMsg = `Halo min ByCimo, aku mau konfirmasi pelunasan untuk item Arrived INA atas nama ${lastSearchedName} dengan total pelunasan ${formattedDue}.`;
-
-      out.innerHTML = `
-        <div class="showing-text">${t.showing(filtered.length, allOrders.length, lastSearchedName)}</div>
-        <div class="summary-strip">
-          <div class="summary-box">
+      area.innerHTML = `
+        <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQuery)}</div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span>${t.sumDue}</span>
+            <strong class="${totalDue < 0 ? "neg" : (totalDue === 0 ? "done-ok" : "")}">${formatIDR(totalDue)}</strong>
+          </div>
+          <div class="summary-card">
             <span>${t.sumTotal}</span>
-            <strong>${formatRp(sumTotal)}</strong>
-          </div>
-          <div class="summary-box">
-            <span>${t.sumDp}</span>
-            <strong>${formatRp(sumDp)}</strong>
-          </div>
-          <div class="summary-box">
-            <span>${t.sumPelunasan}</span>
-            <strong class="${sumPelunasan < 0 ? "minus" : (sumPelunasan === 0 ? "lunas" : "")}">${formatRp(sumPelunasan)}</strong>
+            <strong>${formatIDR(totalAmt)}</strong>
           </div>
         </div>
-        <div class="table-card">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>${t.thName}</th>
                 <th>${t.thBatch}</th>
                 <th>${t.thItem}</th>
-                <th style="text-align:center;">${t.thQty}</th>
                 <th>${t.thStatus}</th>
-                <th class="num">${t.thTotal}</th>
-                <th class="num">${t.thDp}</th>
+                <th class="num">${t.thPaid}</th>
                 <th class="num">${t.thDue}</th>
+                <th class="num">${t.thTotal}</th>
               </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
           </table>
-        </div>
-        <div class="hint-scroll">${t.scrollHint}</div>
-        <div class="payment-card">
-          <div class="payment-header">
-            <div class="payment-title">${t.payTitle}</div>
-            <div class="payment-note">${t.payNote}</div>
-          </div>
-          <div class="rek-list">
-            <div class="rek-box">
-              <div>
-                <div class="rek-bank">BCA</div>
-                <div class="rek-num">8555129579</div>
-                <div class="rek-name">a/n Nadifa Aulia</div>
-              </div>
-              <button class="copy-btn" onclick="copyText('8555129579', this)">${t.copyBtn}</button>
-            </div>
-            <div class="rek-box">
-              <div>
-                <div class="rek-bank">SEABANK</div>
-                <div class="rek-num">901061923808</div>
-                <div class="rek-name">a/n Nadifa Aulia</div>
-              </div>
-              <button class="copy-btn" onclick="copyText('901061923808', this)">${t.copyBtn}</button>
-            </div>
-          </div>
-          <a
-            class="confirm-wa-btn"
-            target="_blank"
-            rel="noopener"
-            href="https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}"
-          >
-            <span>📲</span> <span>${t.confirmWa(formattedDue)}</span>
-          </a>
         </div>
       `;
     }
   </script>
 </body>
 </html>
-Analyzing
