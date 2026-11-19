@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -506,7 +506,7 @@
         fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b> dan pakai URL berakhiran <b>/exec</b>.",
         notFound: "Data order tidak ditemukan untuk kombinasi nama, email, atau filter tersebut.",
         showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk ${q}`,
-        sumDue: "Sisa Pelunasan",
+        sumDue: "Sisa Pelunasan (ARRIVED INA)",
         sumTotal: "Total Nominal",
         scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
         payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
@@ -538,7 +538,7 @@
         fetchErr: "Failed to load data from Google Sheets. Make sure Web App is deployed as <b>Anyone</b> and uses the <b>/exec</b> URL.",
         notFound: "No orders found for this name, email, or filter.",
         showing: (a, b, q) => `Showing ${a} of ${b} orders for ${q}`,
-        sumDue: "Balance Due",
+        sumDue: "Balance Due (ARRIVED INA)",
         sumTotal: "Total Amount",
         scrollHint: "Scroll table right to see Qty, Total, DP, and Balance →",
         payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
@@ -650,10 +650,15 @@
       return fallback;
     }
 
+    function isArrivedIna(status) {
+      const s = String(status || "").trim().toLowerCase();
+      return s.includes("arrived ina") || s === "arrived_ina" || s === "arrivedina";
+    }
+
     function statusBadgeClass(status) {
       const s = String(status || "").toLowerCase();
-      if (s.includes("arriv") || s.includes("indo") || s.includes("ready") || s.includes("wh")) return "b-arrive";
-      if (s.includes("otw") || s.includes("ship") || s.includes("flight") || s.includes("sea")) return "b-otw";
+      if (isArrivedIna(s) || s.includes("arriv") || s.includes("indo") || s.includes("ready")) return "b-arrive";
+      if (s.includes("otw") || s.includes("ship") || s.includes("flight") || s.includes("sea") || s.includes("wh")) return "b-otw";
       return "b-other";
     }
 
@@ -719,9 +724,9 @@
         return;
       }
 
-      let totalDue = 0;
+      let arrivedDueTotal = 0;
       let totalAmt = 0;
-      const itemSummaryList = [];
+      const arrivedItemsSummary = [];
 
       const rowsHtml = filtered.map(item => {
         const nama = pickField(item, ["Nama Depan", "namaDepan", "nama", "name"], "-");
@@ -734,9 +739,12 @@
         const rawDue = pickField(item, ["Pelunasan", "pelunasan", "balance"], null);
         const due = rawDue !== null ? parseNum(rawDue) : (total - paid);
 
-        totalDue += due;
         totalAmt += total;
-        itemSummaryList.push(`- [${batch}] ${brg} (x${qty}) -> Pelunasan: ${formatIDR(due)}`);
+
+        if (isArrivedIna(status) && due > 0) {
+          arrivedDueTotal += due;
+          arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) -> Pelunasan: ${formatIDR(due)}`);
+        }
 
         const dueClass = due < 0 ? "neg" : (due === 0 ? "done-ok" : "");
         const badgeCls = statusBadgeClass(status);
@@ -755,22 +763,22 @@
         `;
       }).join("");
 
-      const formattedDue = formatIDR(totalDue);
+      const formattedArrivedDue = formatIDR(arrivedDueTotal);
       const buyerNameDisplay = pickField(filtered[0], ["Nama Depan", "namaDepan", "nama", "name"], lastQueryLabel);
-      const waMsg = [
-        `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order:`,
+      const waMsgLines = [
+        `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order (ARRIVED INA):`,
         `Nama: ${buyerNameDisplay}`,
-        ...itemSummaryList,
-        `Total Sisa Pelunasan: ${formattedDue}`
-      ].join("\n");
-      const waHref = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}`;
+        ...(arrivedItemsSummary.length > 0 ? arrivedItemsSummary : ["- Tidak ada item ARRIVED INA dengan sisa pelunasan"]),
+        `Total Pelunasan ARRIVED INA: ${formattedArrivedDue}`
+      ];
+      const waHref = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
 
       area.innerHTML = `
         <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
         <div class="summary-grid">
           <div class="summary-card">
             <span>${t.sumDue}</span>
-            <strong class="${totalDue < 0 ? "neg" : (totalDue === 0 ? "done-ok" : "")}">${formattedDue}</strong>
+            <strong class="${arrivedDueTotal < 0 ? "neg" : (arrivedDueTotal === 0 ? "done-ok" : "")}">${formattedArrivedDue}</strong>
           </div>
           <div class="summary-card">
             <span>${t.sumTotal}</span>
@@ -819,7 +827,7 @@
             </div>
           </div>
           <a class="confirm-wa-btn" href="${waHref}" target="_blank" rel="noopener">
-            <span>💬</span> <span>${t.confirmWa(formattedDue)}</span>
+            <span>💬</span> <span>${t.confirmWa(formattedArrivedDue)}</span>
           </a>
         </div>
       `;
