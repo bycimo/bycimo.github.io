@@ -236,6 +236,13 @@
       font-size: 14px;
     }
 
+    .summary-sub {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
     .table-wrap {
       background: var(--card);
       border: 1px solid var(--border);
@@ -320,7 +327,7 @@
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .payment-title {
@@ -332,6 +339,25 @@
     .qris-note {
       font-size: 11px;
       color: var(--muted);
+    }
+
+    .payment-due-banner {
+      background: #F4F8FF;
+      border: 1px solid var(--blue-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .payment-due-banner strong {
+      font-size: 14px;
+      color: var(--blue-dark);
     }
 
     .bank-grid {
@@ -468,7 +494,7 @@
   <script>
     // === KONFIGURASI UTAMA ===
     const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
-    const ADMIN_WA = "6281234567890";
+    const ADMIN_WA = "6285810117201";
     const BRAND_NAME = "ByCimo";
     const IG_URL = "https://www.instagram.com/bycimo/";
 
@@ -506,8 +532,10 @@
         fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b> dan pakai URL berakhiran <b>/exec</b>.",
         notFound: "Data order tidak ditemukan untuk kombinasi nama, email, atau filter tersebut.",
         showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk ${q}`,
-        sumDue: "Sisa Pelunasan (ARRIVED INA)",
+        sumDueAll: "Total Sisa Pelunasan (Semua Status)",
+        sumDueArrivedOnly: (amt) => `Khusus ARRIVED INA: ${amt}`,
         sumTotal: "Total Nominal",
+        payArrivedLabel: "Nominal Pelunasan (Khusus ARRIVED INA)",
         scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
         payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
         qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
@@ -538,8 +566,10 @@
         fetchErr: "Failed to load data from Google Sheets. Make sure Web App is deployed as <b>Anyone</b> and uses the <b>/exec</b> URL.",
         notFound: "No orders found for this name, email, or filter.",
         showing: (a, b, q) => `Showing ${a} of ${b} orders for ${q}`,
-        sumDue: "Balance Due (ARRIVED INA)",
+        sumDueAll: "Total Remaining Balance (All Status)",
+        sumDueArrivedOnly: (amt) => `ARRIVED INA Only: ${amt}`,
         sumTotal: "Total Amount",
+        payArrivedLabel: "Payment Due (ARRIVED INA Only)",
         scrollHint: "Scroll table right to see Qty, Total, DP, and Balance →",
         payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
         qrisNote: "QRIS > Rp 100.000 requires +0.3%",
@@ -651,8 +681,8 @@
     }
 
     function isArrivedIna(status) {
-      const s = String(status || "").trim().toLowerCase();
-      return s.includes("arrived ina") || s === "arrived_ina" || s === "arrivedina";
+      const s = String(status || "").trim().toLowerCase().replace(/\s+/g, " ");
+      return s === "arrived ina" || s.includes("arrived ina") || s === "arrived_ina" || s === "arrivedina";
     }
 
     function statusBadgeClass(status) {
@@ -724,6 +754,7 @@
         return;
       }
 
+      let totalDueAll = 0;
       let arrivedDueTotal = 0;
       let totalAmt = 0;
       const arrivedItemsSummary = [];
@@ -740,6 +771,7 @@
         const due = rawDue !== null ? parseNum(rawDue) : (total - paid);
 
         totalAmt += total;
+        totalDueAll += due;
 
         if (isArrivedIna(status) && due > 0) {
           arrivedDueTotal += due;
@@ -763,13 +795,15 @@
         `;
       }).join("");
 
+      const formattedTotalDueAll = formatIDR(totalDueAll);
       const formattedArrivedDue = formatIDR(arrivedDueTotal);
       const buyerNameDisplay = pickField(filtered[0], ["Nama Depan", "namaDepan", "nama", "name"], lastQueryLabel);
+
       const waMsgLines = [
-        `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order (ARRIVED INA):`,
+        `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order (khusus ARRIVED INA):`,
         `Nama: ${buyerNameDisplay}`,
         ...(arrivedItemsSummary.length > 0 ? arrivedItemsSummary : ["- Tidak ada item ARRIVED INA dengan sisa pelunasan"]),
-        `Total Pelunasan ARRIVED INA: ${formattedArrivedDue}`
+        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`
       ];
       const waHref = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
 
@@ -777,8 +811,9 @@
         <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
         <div class="summary-grid">
           <div class="summary-card">
-            <span>${t.sumDue}</span>
-            <strong class="${arrivedDueTotal < 0 ? "neg" : (arrivedDueTotal === 0 ? "done-ok" : "")}">${formattedArrivedDue}</strong>
+            <span>${t.sumDueAll}</span>
+            <strong class="${totalDueAll < 0 ? "neg" : (totalDueAll === 0 ? "done-ok" : "")}">${formattedTotalDueAll}</strong>
+            <span class="summary-sub">${t.sumDueArrivedOnly(formattedArrivedDue)}</span>
           </div>
           <div class="summary-card">
             <span>${t.sumTotal}</span>
@@ -807,6 +842,10 @@
           <div class="payment-head">
             <div class="payment-title">${t.payTitle}</div>
             <div class="qris-note">${t.qrisNote}</div>
+          </div>
+          <div class="payment-due-banner">
+            <span>${t.payArrivedLabel}</span>
+            <strong class="${arrivedDueTotal < 0 ? "neg" : (arrivedDueTotal === 0 ? "done-ok" : "")}">${formattedArrivedDue}</strong>
           </div>
           <div class="bank-grid">
             <div class="bank-box">
