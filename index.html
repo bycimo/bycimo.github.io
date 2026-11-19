@@ -106,7 +106,7 @@
     }
 
     .container {
-      max-width: 720px;
+      max-width: 820px;
       margin: 0 auto;
       padding: 18px 16px 0;
     }
@@ -317,7 +317,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 560px;
+      min-width: 680px;
       font-size: 13px;
     }
 
@@ -345,7 +345,7 @@
     .col-name { font-weight: 700; white-space: nowrap; }
     .col-batch { color: var(--muted); font-weight: 600; white-space: nowrap; }
     .col-item { font-weight: 500; line-height: 1.35; }
-    .col-note { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .col-qty { text-align: center; font-weight: 600; white-space: nowrap; }
 
     .badge {
       display: inline-block;
@@ -424,21 +424,21 @@
 
   <script>
     // === KONFIGURASI UTAMA ===
-    const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
-    const ADMIN_WA = "6285810117201";
+    const API_URL = "PASTE_URL_WEB_APP_KAMU_DI_SINI";
+    const ADMIN_WA = "6281234567890";
     const BRAND_NAME = "bycimo";
     const IG_URL = "https://www.instagram.com/bycimo/";
 
     const PAYMENT_INFO = {
       bca: {
         label: "Bank BCA",
-        account: "8555129579", // Ganti dengan no rekening BCA kamu
-        holder: "a.n. N A"     // Ganti dengan nama pemilik rekening BCA
+        account: "8555129579",
+        holder: "a.n. bycimo"
       },
       seabank: {
         label: "SeaBank",
-        account: "901061923808", // Ganti dengan no rekening SeaBank kamu
-        holder: "a.n. N A"     // Ganti dengan nama pemilik rekening SeaBank
+        account: "901061923808",
+        holder: "a.n. bycimo"
       }
     };
     // =========================
@@ -468,12 +468,13 @@
         payTitle: "Informasi Pembayaran (BCA & SeaBank)",
         copy: "Salin",
         copied: "Tersalin",
-        thName: "NAME",
+        thName: "NAMA",
         thBatch: "BATCH",
         thItem: "ITEM",
+        thQty: "QTY",
         thStatus: "STATUS",
-        thPaid: "PAID",
-        thDue: "BALANCE",
+        thPaid: "DP / PAID",
+        thDue: "PELUNASAN",
         thTotal: "TOTAL"
       },
       en: {
@@ -499,8 +500,9 @@
         thName: "NAME",
         thBatch: "BATCH",
         thItem: "ITEM",
+        thQty: "QTY",
         thStatus: "STATUS",
-        thPaid: "PAID",
+        thPaid: "DP / PAID",
         thDue: "BALANCE",
         thTotal: "TOTAL"
       }
@@ -559,10 +561,44 @@
       });
     }
 
+    function parseNum(val) {
+      if (typeof val === "number") return isNaN(val) ? 0 : val;
+      const cleaned = String(val || "0")
+        .replace(/rp/gi, "")
+        .replace(/\s+/g, "")
+        .replace(/,/g, "")
+        .trim();
+      if (!cleaned) return 0;
+      const n = Number(cleaned);
+      if (!isNaN(n)) return n;
+      const dotCleaned = cleaned.replace(/\./g, "");
+      const n2 = Number(dotCleaned);
+      return isNaN(n2) ? 0 : n2;
+    }
+
     function formatIDR(val) {
-      const num = Number(val) || 0;
+      const num = parseNum(val);
       const prefix = num < 0 ? "-Rp " : "Rp ";
       return prefix + Math.abs(num).toLocaleString("id-ID");
+    }
+
+    function pickField(row, keys, fallback = "") {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "") {
+          return row[k];
+        }
+      }
+      const lowerMap = {};
+      Object.keys(row || {}).forEach(origKey => {
+        lowerMap[origKey.toLowerCase().replace(/[^a-z0-9]/g, "")] = row[origKey];
+      });
+      for (const k of keys) {
+        const norm = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (lowerMap[norm] !== undefined && lowerMap[norm] !== null && String(lowerMap[norm]).trim() !== "") {
+          return lowerMap[norm];
+        }
+      }
+      return fallback;
     }
 
     function statusBadgeClass(status) {
@@ -575,8 +611,8 @@
     function matchesNameAndEmail(row, nameQ, emailQ) {
       const nNeedle = nameQ.toLowerCase();
       const eNeedle = emailQ.toLowerCase();
-      const nameVal = String(row.nama || row.name || "").trim().toLowerCase();
-      const emailVal = String(row.email || row.mail || "").trim().toLowerCase();
+      const nameVal = String(pickField(row, ["Nama Depan", "namaDepan", "nama", "name"], "")).trim().toLowerCase();
+      const emailVal = String(pickField(row, ["Email", "email", "mail"], "")).trim().toLowerCase();
       return nameVal.includes(nNeedle) && emailVal === eNeedle;
     }
 
@@ -603,9 +639,10 @@
       try {
         const res = await fetch(API_URL, { cache: "no-store" });
         if (!res.ok) throw new Error("Network response was not ok");
-        const rows = await res.json();
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
         lastQueryLabel = `"${nameQ}" & "${emailQ}"`;
-        ordersData = Array.isArray(rows) ? rows.filter(r => matchesNameAndEmail(r, nameQ, emailQ)) : [];
+        ordersData = rows.filter(r => matchesNameAndEmail(r, nameQ, emailQ));
         renderOrders();
       } catch (err) {
         area.innerHTML = `<div class="state-box">${t.fetchErr}</div>`;
@@ -621,7 +658,7 @@
       const filter = document.getElementById("statusFilter").value;
 
       const filtered = ordersData.filter(item => {
-        const doneFlag = String(item.done || "").trim().toLowerCase();
+        const doneFlag = String(pickField(item, ["DONE", "done", "statusDone"], "")).trim().toLowerCase();
         const isDone = doneFlag === "yes" || doneFlag === "done" || doneFlag === "true" || doneFlag === "lunas";
         if (filter === "not_done") return !isDone;
         if (filter === "done") return isDone;
@@ -637,23 +674,29 @@
       let totalAmt = 0;
 
       const rowsHtml = filtered.map(item => {
-        const due = Number(item.pelunasan) || 0;
-        const total = Number(item.total) || 0;
-        const paid = Number(item.sudahBayar) || 0;
+        const nama = pickField(item, ["Nama Depan", "namaDepan", "nama", "name"], "-");
+        const batch = pickField(item, ["Batch", "batch"], "-");
+        const brg = pickField(item, ["Item", "item", "barang"], "-");
+        const qty = pickField(item, ["Jumlah (QTY)", "jumlahQty", "qty", "jumlah"], "-");
+        const status = pickField(item, ["Status", "status"], "-");
+        const paid = parseNum(pickField(item, ["DP", "dp", "sudahBayar", "paid"], 0));
+        const total = parseNum(pickField(item, ["Total", "total"], 0));
+        const rawDue = pickField(item, ["Pelunasan", "pelunasan", "balance"], null);
+        const due = rawDue !== null ? parseNum(rawDue) : (total - paid);
 
         totalDue += due;
         totalAmt += total;
 
         const dueClass = due < 0 ? "neg" : (due === 0 ? "done-ok" : "");
-        const badgeCls = statusBadgeClass(item.status);
-        const noteHtml = item.catatan ? `<span class="col-note">${item.catatan}</span>` : "";
+        const badgeCls = statusBadgeClass(status);
 
         return `
           <tr>
-            <td class="col-name">${item.nama || item.name || "-"}</td>
-            <td class="col-batch">${item.batch || "-"}</td>
-            <td class="col-item">${item.item || "-"}${noteHtml}</td>
-            <td><span class="badge ${badgeCls}">${item.status || "-"}</span></td>
+            <td class="col-name">${nama}</td>
+            <td class="col-batch">${batch}</td>
+            <td class="col-item">${brg}</td>
+            <td class="col-qty">${qty}</td>
+            <td><span class="badge ${badgeCls}">${status}</span></td>
             <td class="num">${formatIDR(paid)}</td>
             <td class="num ${dueClass}">${formatIDR(due)}</td>
             <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
@@ -701,6 +744,7 @@
                 <th>${t.thName}</th>
                 <th>${t.thBatch}</th>
                 <th>${t.thItem}</th>
+                <th style="text-align:center;">${t.thQty}</th>
                 <th>${t.thStatus}</th>
                 <th class="num">${t.thPaid}</th>
                 <th class="num">${t.thDue}</th>
