@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -54,15 +55,67 @@
       gap: 10px;
     }
 
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .brand-pill {
       background: var(--blue-soft);
       color: var(--blue-dark);
       font-weight: 700;
       font-size: 14px;
-      padding: 7px 15px;
+      padding: 6px 14px;
       border-radius: 999px;
       white-space: nowrap;
       border: 1px solid var(--blue-border);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+    }
+
+    .brand-logo-img {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .brand-logo-svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .ig-pill {
+      background: var(--surface);
+      color: var(--blue-dark);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+      border: 1px solid var(--blue-border);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .ig-pill:hover {
+      background: var(--blue-soft);
+      border-color: #93C5FD;
+    }
+
+    .ig-icon-svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
     }
 
     .topbar-right {
@@ -131,6 +184,9 @@
     @media (max-width: 480px) {
       .search-grid {
         grid-template-columns: 1fr;
+      }
+      .ig-handle-text {
+        display: none;
       }
     }
 
@@ -466,7 +522,25 @@
 <body>
 
   <header class="topbar">
-    <div class="brand-pill" id="brandName">ByCimo</div>
+    <div class="brand-group">
+      <a class="brand-pill" href="#" onclick="focusSearch(); return false;">
+        <img id="brandLogoImg" class="brand-logo-img" alt="ByCimo Logo" />
+        <svg id="brandLogoSvg" class="brand-logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span id="brandName">ByCimo</span>
+      </a>
+      <a class="ig-pill" id="igLink" href="https://instagram.com/bycimo.id" target="_blank" rel="noopener" title="Instagram ByCimo">
+        <svg class="ig-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+        <span class="ig-handle-text" id="igHandleLabel">@bycimo.id</span>
+      </a>
+    </div>
     <div class="topbar-right">
       <div class="lang-switch">
         <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
@@ -506,9 +580,24 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
     const ADMIN_WA = "6285810117201";
     const BRAND_NAME = "ByCimo";
+    const BRAND_LOGO_URL = ""; // Opsional: isi link gambar logo ByCimo (contoh: "./logo-bycimo.png" atau link Google Drive/CDN). Kosongkan untuk pakai ikon bawaan.
+    const IG_USERNAME = "bycimo.id"; // Ganti jika username Instagram ByCimo berbeda
 
     document.getElementById("brandName").textContent = BRAND_NAME;
     document.getElementById("adminLink").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min ByCimo, mau tanya soal orderanku")}`;
+
+    const cleanIg = IG_USERNAME.replace(/^@/, "");
+    document.getElementById("igLink").href = `https://instagram.com/${cleanIg}`;
+    document.getElementById("igHandleLabel").textContent = `@${cleanIg}`;
+
+    if (BRAND_LOGO_URL.trim()) {
+      const imgEl = document.getElementById("brandLogoImg");
+      const svgEl = document.getElementById("brandLogoSvg");
+      imgEl.src = BRAND_LOGO_URL.trim();
+      imgEl.style.display = "inline-block";
+      imgEl.onload = () => { if (svgEl) svgEl.style.display = "none"; };
+      imgEl.onerror = () => { imgEl.style.display = "none"; };
+    }
 
     let lang = "id";
     let allOrders = [];
@@ -540,8 +629,8 @@
         thDue: "PELUNASAN",
         empty: "Data tidak ditemukan. Pastikan Nama Depan dan Email sudah sesuai.",
         scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
-        payTitle: "💳 Info Rekening Pelunasan ByCimo",
-        payNote: "QRIS > Rp 100.000 wajib +0.3%",
+        payTitle: "💳 Info Rekening Pelunasan ByCimo (Arrived INA)",
+        payNote: "Hanya item Arrived INA • QRIS > Rp 100.000 wajib +0.3%",
         copyBtn: "Salin No. Rek",
         copiedBtn: "Tersalin ✓",
         confirmWa: (amount) => `Konfirmasi Pelunasan ke Admin (${amount})`
@@ -571,8 +660,8 @@
         thDue: "BALANCE",
         empty: "No matching orders found. Please check your First Name and Email.",
         scrollHint: "Scroll table horizontally to view Qty, Total, DP, and Balance →",
-        payTitle: "💳 ByCimo Payment Account Details",
-        payNote: "QRIS > Rp 100,000 requires +0.3%",
+        payTitle: "💳 ByCimo Payment Account Details (Arrived INA)",
+        payNote: "Arrived INA items only • QRIS > Rp 100,000 requires +0.3%",
         copyBtn: "Copy Acc.",
         copiedBtn: "Copied ✓",
         confirmWa: (amount) => `Confirm Payment to Admin (${amount})`
@@ -703,6 +792,7 @@
       let sumTotal = 0;
       let sumDp = 0;
       let sumPelunasan = 0;
+      let sumArrivedPelunasan = 0;
 
       const rowsHtml = filtered.map(item => {
         const rawTotal = item.total ?? item.harga ?? item.Total ?? item.Harga ?? 0;
@@ -712,6 +802,16 @@
         const isDoneYes = (item.done || "").toString().trim().toLowerCase() === "yes";
         const pelunasanVal = isDoneYes ? 0 : (totalVal - dpVal);
         const qtyVal = getQtyValue(item);
+
+        const statusLower = String(item.status || "").toLowerCase();
+        const isArrivedIna =
+          statusLower.includes("arrived ina") ||
+          statusLower.includes("arrive") ||
+          statusLower.includes("indo");
+
+        if (!isDoneYes && isArrivedIna) {
+          sumArrivedPelunasan += pelunasanVal;
+        }
 
         sumTotal += totalVal;
         sumDp += dpVal;
@@ -737,8 +837,8 @@
         `;
       }).join("");
 
-      const formattedDue = formatRp(sumPelunasan);
-      const waMsg = `Halo min ByCimo, aku mau konfirmasi pelunasan atas nama ${lastSearchedName} dengan total pelunasan ${formattedDue}.`;
+      const formattedDue = formatRp(sumArrivedPelunasan);
+      const waMsg = `Halo min ByCimo, aku mau konfirmasi pelunasan untuk item Arrived INA atas nama ${lastSearchedName} dengan total pelunasan ${formattedDue}.`;
 
       out.innerHTML = `
         <div class="showing-text">${t.showing(filtered.length, allOrders.length, lastSearchedName)}</div>
@@ -753,7 +853,7 @@
           </div>
           <div class="summary-box">
             <span>${t.sumPelunasan}</span>
-            <strong class="${sumPelunasan < 0 ? "minus" : (sumPelunasan === 0 ? "lunas" : "")}">${formattedDue}</strong>
+            <strong class="${sumPelunasan < 0 ? "minus" : (sumPelunasan === 0 ? "lunas" : "")}">${formatRp(sumPelunasan)}</strong>
           </div>
         </div>
         <div class="table-card">
@@ -811,3 +911,4 @@
   </script>
 </body>
 </html>
+Analyzing
