@@ -7,18 +7,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #FFF9FA;
+      --bg: #F4F8FF;
       --card: #FFFFFF;
-      --pink: #F7D6DF;
-      --pink-badge: #F5C2D1;
-      --pink-ink: #9D3758;
+      --blue-soft: #DCEAFF;
+      --blue-border: #C3DAFF;
+      --blue-main: #2563EB;
+      --blue-dark: #1E40AF;
+      --pink-badge: #FCE7F3;
+      --pink-ink: #9D174D;
       --blue-badge: #DBEAFE;
       --blue-ink: #1D4ED8;
-      --gray-badge: #F1F3F5;
-      --gray-ink: #495057;
-      --ink: #221E20;
-      --muted: #766E71;
-      --border: #F0E3E7;
+      --gray-badge: #F1F5F9;
+      --gray-ink: #475569;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --border: #DCE7F9;
       --red: #DC2626;
       --green: #16A34A;
     }
@@ -41,7 +44,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: rgba(255, 249, 250, 0.95);
+      background: rgba(244, 248, 255, 0.95);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border);
       padding: 12px 16px;
@@ -52,8 +55,8 @@
     }
 
     .brand-pill {
-      background: var(--pink);
-      color: var(--ink);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
       font-weight: 700;
       font-size: 14px;
       padding: 7px 14px;
@@ -87,17 +90,17 @@
     }
 
     .lang-btn.active {
-      background: var(--pink);
-      color: var(--ink);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
     }
 
     .menu-btn {
       width: 34px;
       height: 34px;
       border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--pink);
-      color: var(--ink);
+      border: 1px solid var(--blue-border);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
       font-weight: 700;
       cursor: pointer;
     }
@@ -115,34 +118,40 @@
       padding: 14px;
       margin-bottom: 12px;
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      box-shadow: 0 4px 16px rgba(157, 55, 88, 0.04);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.05);
     }
 
     .search-box input {
-      flex: 1;
+      flex: 1 1 190px;
+      min-width: 0;
       padding: 11px 14px;
       border-radius: 10px;
-      border: 1px solid #E6D5DA;
+      border: 1px solid var(--blue-border);
       font-size: 14px;
       color: var(--ink);
       outline: none;
     }
 
     .search-box input:focus {
-      border-color: #D48CA3;
+      border-color: var(--blue-main);
     }
 
     .btn-check {
       padding: 11px 16px;
       border-radius: 10px;
       border: none;
-      background: var(--ink);
+      background: var(--blue-main);
       color: #FFFFFF;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
+    }
+
+    .btn-check:hover {
+      background: var(--blue-dark);
     }
 
     .btn-check:disabled {
@@ -162,7 +171,7 @@
     .filter-select {
       padding: 8px 14px;
       border-radius: 999px;
-      border: 1px solid #E6D5DA;
+      border: 1px solid var(--blue-border);
       background: var(--card);
       color: var(--ink);
       font-size: 12px;
@@ -180,15 +189,19 @@
     .pill-btn {
       padding: 8px 14px;
       border-radius: 999px;
-      border: 1.5px solid #EAB5C5;
+      border: 1.5px solid var(--blue-border);
       background: var(--card);
-      color: var(--ink);
+      color: var(--blue-dark);
       font-size: 12px;
       font-weight: 700;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+    }
+
+    .pill-btn:hover {
+      background: var(--blue-soft);
     }
 
     .meta-line {
@@ -234,7 +247,7 @@
     .payment-title {
       font-size: 12px;
       font-weight: 700;
-      color: var(--pink-ink);
+      color: var(--blue-dark);
       margin-bottom: 10px;
     }
 
@@ -251,8 +264,8 @@
     }
 
     .bank-box {
-      border: 1px solid #F3E5EA;
-      background: #FFFCFD;
+      border: 1px solid var(--border);
+      background: #F9FBFF;
       border-radius: 12px;
       padding: 11px 12px;
       display: flex;
@@ -285,9 +298,9 @@
     .copy-btn {
       padding: 6px 10px;
       border-radius: 8px;
-      border: 1px solid #E6D5DA;
-      background: var(--pink);
-      color: var(--ink);
+      border: 1px solid var(--blue-border);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
@@ -316,12 +329,12 @@
       color: var(--muted);
       padding: 12px;
       border-bottom: 1px solid var(--border);
-      background: #FFFCFD;
+      background: #F9FBFF;
     }
 
     td {
       padding: 13px 12px;
-      border-bottom: 1px solid #F7EFF2;
+      border-bottom: 1px solid #EEF3FC;
       vertical-align: middle;
     }
 
@@ -382,7 +395,8 @@
 
   <main class="container">
     <form class="search-box" onsubmit="event.preventDefault(); searchOrders();">
-      <input type="text" id="searchInput" placeholder="Masukkan nama atau email pembeli..." autocomplete="off" />
+      <input type="text" id="nameInput" placeholder="Nama pembeli..." autocomplete="off" />
+      <input type="email" id="emailInput" placeholder="Email pembeli..." autocomplete="off" />
       <button type="submit" class="btn-check" id="checkBtn">Cek Order</button>
     </form>
 
@@ -404,7 +418,7 @@
     </div>
 
     <div id="contentArea">
-      <div class="state-box" id="welcomeBox">Ketik nama atau email pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.</div>
+      <div class="state-box" id="welcomeBox">Masukkan <b>Nama</b> dan <b>Email</b> pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.</div>
     </div>
   </main>
 
@@ -431,23 +445,24 @@
 
     let currentLang = "id";
     let ordersData = [];
-    let lastQuery = "";
+    let lastQueryLabel = "";
 
     const TEXT = {
       id: {
-        placeholder: "Masukkan nama atau email pembeli...",
+        namePlaceholder: "Nama pembeli...",
+        emailPlaceholder: "Email pembeli...",
         check: "Cek Order",
         loading: "Mencari data...",
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
         done: "Status: Done",
-        welcome: 'Ketik nama atau email pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.',
-        emptyName: "Masukkan nama atau email pembeli terlebih dahulu.",
+        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.',
+        missingBoth: "Masukkan Nama dan Email pembeli terlebih dahulu.",
         missingApi: "URL Google Apps Script (<code>API_URL</code>) belum diisi pada file <code>index.html</code>.",
         fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b>.",
-        notFound: "Data order tidak ditemukan untuk nama/email atau filter tersebut.",
-        showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk "${q}"`,
+        notFound: "Data order tidak ditemukan untuk kombinasi nama, email, atau filter tersebut.",
+        showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk ${q}`,
         sumDue: "Sisa Pelunasan",
         sumTotal: "Total Nominal",
         payTitle: "Informasi Pembayaran (BCA & SeaBank)",
@@ -462,19 +477,20 @@
         thTotal: "TOTAL"
       },
       en: {
-        placeholder: "Enter buyer name or email...",
+        namePlaceholder: "Buyer name...",
+        emailPlaceholder: "Buyer email...",
         check: "Check Order",
         loading: "Searching...",
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
         done: "Status: Done",
-        welcome: 'Type a buyer name or email and tap <b>Check Order</b> to view item status and balance.',
-        emptyName: "Please enter a buyer name or email first.",
+        welcome: 'Enter both buyer <b>Name</b> and <b>Email</b> and tap <b>Check Order</b> to view item status and balance.',
+        missingBoth: "Please enter both buyer Name and Email.",
         missingApi: "Google Apps Script URL (<code>API_URL</code>) is not set in <code>index.html</code>.",
         fetchErr: "Failed to load data from Google Sheets. Make sure Web App access is set to <b>Anyone</b>.",
-        notFound: "No orders found for this name/email or filter.",
-        showing: (a, b, q) => `Showing ${a} of ${b} orders for "${q}"`,
+        notFound: "No orders found for this name, email, or filter.",
+        showing: (a, b, q) => `Showing ${a} of ${b} orders for ${q}`,
         sumDue: "Balance Due",
         sumTotal: "Total Amount",
         payTitle: "Payment Details (BCA & SeaBank)",
@@ -495,16 +511,17 @@
     document.getElementById("adminBtn").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
 
     function focusInput() {
-      const el = document.getElementById("searchInput");
+      const el = document.getElementById("nameInput");
       el.focus();
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function resetView(e) {
       if (e) e.preventDefault();
-      lastQuery = "";
+      lastQueryLabel = "";
       ordersData = [];
-      document.getElementById("searchInput").value = "";
+      document.getElementById("nameInput").value = "";
+      document.getElementById("emailInput").value = "";
       document.getElementById("contentArea").innerHTML = `<div class="state-box">${TEXT[currentLang].welcome}</div>`;
     }
 
@@ -514,7 +531,8 @@
       document.getElementById("langEN").classList.toggle("active", lang === "en");
 
       const t = TEXT[lang];
-      document.getElementById("searchInput").placeholder = t.placeholder;
+      document.getElementById("nameInput").placeholder = t.namePlaceholder;
+      document.getElementById("emailInput").placeholder = t.emailPlaceholder;
       document.getElementById("checkBtn").textContent = t.check;
       document.getElementById("adminLabel").textContent = t.admin;
 
@@ -523,7 +541,7 @@
       sel.options[1].text = t.all;
       sel.options[2].text = t.done;
 
-      if (lastQuery) {
+      if (lastQueryLabel) {
         renderOrders();
       } else {
         document.getElementById("contentArea").innerHTML = `<div class="state-box">${t.welcome}</div>`;
@@ -554,21 +572,23 @@
       return "b-other";
     }
 
-    function matchesQuery(row, q) {
-      const needle = q.toLowerCase();
-      const nameVal = String(row.nama || row.name || "").toLowerCase();
-      const emailVal = String(row.email || row.mail || "").toLowerCase();
-      return nameVal.includes(needle) || emailVal.includes(needle);
+    function matchesNameAndEmail(row, nameQ, emailQ) {
+      const nNeedle = nameQ.toLowerCase();
+      const eNeedle = emailQ.toLowerCase();
+      const nameVal = String(row.nama || row.name || "").trim().toLowerCase();
+      const emailVal = String(row.email || row.mail || "").trim().toLowerCase();
+      return nameVal.includes(nNeedle) && emailVal === eNeedle;
     }
 
     async function searchOrders() {
       const t = TEXT[currentLang];
-      const q = document.getElementById("searchInput").value.trim();
+      const nameQ = document.getElementById("nameInput").value.trim();
+      const emailQ = document.getElementById("emailInput").value.trim();
       const area = document.getElementById("contentArea");
       const btn = document.getElementById("checkBtn");
 
-      if (!q) {
-        area.innerHTML = `<div class="state-box">${t.emptyName}</div>`;
+      if (!nameQ || !emailQ) {
+        area.innerHTML = `<div class="state-box">${t.missingBoth}</div>`;
         return;
       }
 
@@ -584,8 +604,8 @@
         const res = await fetch(API_URL, { cache: "no-store" });
         if (!res.ok) throw new Error("Network response was not ok");
         const rows = await res.json();
-        lastQuery = q;
-        ordersData = Array.isArray(rows) ? rows.filter(r => matchesQuery(r, q)) : [];
+        lastQueryLabel = `"${nameQ}" & "${emailQ}"`;
+        ordersData = Array.isArray(rows) ? rows.filter(r => matchesNameAndEmail(r, nameQ, emailQ)) : [];
         renderOrders();
       } catch (err) {
         area.innerHTML = `<div class="state-box">${t.fetchErr}</div>`;
@@ -642,7 +662,7 @@
       }).join("");
 
       area.innerHTML = `
-        <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQuery)}</div>
+        <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
         <div class="summary-grid">
           <div class="summary-card">
             <span>${t.sumDue}</span>
