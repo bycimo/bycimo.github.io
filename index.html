@@ -548,6 +548,13 @@
       color: var(--muted);
       line-height: 1.5;
     }
+
+    .debug-note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
@@ -566,7 +573,7 @@
     <form class="search-box" onsubmit="event.preventDefault(); searchOrders();">
       <input type="text" id="nameInput" placeholder="Nama pembeli..." autocomplete="off" />
       <input type="email" id="emailInput" placeholder="Email pembeli..." autocomplete="off" />
-      <input type="text" id="arrivedInput" placeholder="Tgl arrived (cth: 16 Nov)..." autocomplete="off" />
+      <input type="text" id="arrivedInput" placeholder="Tgl arrived (cth: 15 nov)..." autocomplete="off" />
       <button type="submit" class="btn-check" id="checkBtn">Cek Order</button>
     </form>
 
@@ -588,7 +595,7 @@
     </div>
 
     <div id="contentArea">
-      <div class="state-box" id="welcomeBox">Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>16 Nov</code>) lalu tekan <b>Cek Order</b>.</div>
+      <div class="state-box" id="welcomeBox">Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>15 nov</code>) lalu tekan <b>Cek Order</b>.</div>
     </div>
   </main>
 
@@ -615,19 +622,21 @@
     let currentLang = "id";
     let ordersData = [];
     let lastQueryLabel = "";
+    let totalFetchedRows = 0;
+    let sampleKeys = "";
 
     const TEXT = {
       id: {
         namePlaceholder: "Nama pembeli...",
         emailPlaceholder: "Email pembeli...",
-        arrivedPlaceholder: "Tgl arrived (cth: 16 Nov)...",
+        arrivedPlaceholder: "Tgl arrived (cth: 15 nov)...",
         check: "Cek Order",
         loading: "Mencari data...",
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
         done: "Status: Done",
-        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>16 Nov</code>) lalu tekan <b>Cek Order</b>.',
+        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>15 nov</code>) lalu tekan <b>Cek Order</b>.',
         missingQuery: "Masukkan Nama & Email pembeli, atau isi Tgl arrived terlebih dahulu.",
         missingApi: "URL Google Apps Script (<code>API_URL</code>) belum diisi pada file <code>index.html</code>.",
         fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b> dan pakai URL berakhiran <b>/exec</b>.",
@@ -658,7 +667,7 @@
         thItem: "ITEM",
         thQty: "QTY",
         thStatus: "STATUS",
-        thCo: "CO",
+        thCo: "DONE CO",
         thTotal: "TOTAL",
         thPaid: "DP",
         thDue: "PELUNASAN"
@@ -666,14 +675,14 @@
       en: {
         namePlaceholder: "Buyer name...",
         emailPlaceholder: "Buyer email...",
-        arrivedPlaceholder: "Arrived date (e.g. 16 Nov)...",
+        arrivedPlaceholder: "Arrived date (e.g. 15 nov)...",
         check: "Check Order",
         loading: "Searching...",
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
         done: "Status: Done",
-        welcome: 'Enter buyer <b>Name</b> and <b>Email</b>, or type <b>Arrived date</b> (e.g. <code>16 Nov</code>) and tap <b>Check Order</b>.',
+        welcome: 'Enter buyer <b>Name</b> and <b>Email</b>, or type <b>Arrived date</b> (e.g. <code>15 nov</code>) and tap <b>Check Order</b>.',
         missingQuery: "Please enter buyer Name & Email, or fill Arrived date first.",
         missingApi: "Google Apps Script URL (<code>API_URL</code>) is not set in <code>index.html</code>.",
         fetchErr: "Failed to load data from Google Sheets. Make sure Web App is deployed as <b>Anyone</b> and uses the <b>/exec</b> URL.",
@@ -704,7 +713,7 @@
         thItem: "ITEM",
         thQty: "QTY",
         thStatus: "STATUS",
-        thCo: "CO",
+        thCo: "DONE CO",
         thTotal: "TOTAL",
         thPaid: "DP",
         thDue: "BALANCE"
@@ -832,12 +841,31 @@
     }
 
     function normalizeDateText(val) {
-      return String(val || "")
+      const monthMap = {
+        januari: "jan", feb: "feb", februari: "feb",
+        mar: "mar", maret: "mar", apr: "apr", april: "apr",
+        mei: "may", jun: "jun", juni: "jun",
+        jul: "jul", juli: "jul", agu: "aug", agustus: "aug",
+        sep: "sep", sept: "sep", september: "sep",
+        okt: "oct", oktober: "oct",
+        nov: "nov", november: "nov",
+        des: "dec", desember: "dec"
+      };
+      let s = String(val || "")
         .toLowerCase()
         .replace(/\b(arrived|tgl|tanggal|ina|batch)\b/g, " ")
         .replace(/[^a-z0-9]+/g, " ")
         .replace(/\s+/g, " ")
         .trim();
+
+      s = s.split(" ").map(tok => monthMap[tok] || tok).join(" ");
+      return s;
+    }
+
+    function rowContainsDateNeedle(row, aNeedle) {
+      if (!aNeedle) return true;
+      const values = Object.values(row || {}).filter(v => v !== null && v !== undefined);
+      return values.some(v => normalizeDateText(v).includes(aNeedle));
     }
 
     function matchesQuery(row, nameQ, emailQ, arrivedQ) {
@@ -847,22 +875,14 @@
 
       const nameVal = String(pickField(row, ["Nama Depan", "namaDepan", "nama", "name"], "")).trim().toLowerCase();
       const emailVal = String(pickField(row, ["Email", "email", "mail"], "")).trim().toLowerCase();
-      const arrivedFieldVal = pickField(row, [
-        "Tgl Arrived", "tglArrived", "tgl_arrived",
-        "Tanggal Arrived", "tanggalArrived", "tanggal_arrived",
-        "Info Arrived", "infoArrived", "info_arrived",
-        "Note Arrived", "noteArrived", "note_arrived",
-        "Arrived", "arrived", "Batch", "batch", "Variasi CO", "variasiCo"
-      ], "");
-      const arrivedNorm = normalizeDateText(arrivedFieldVal);
 
       if (aNeedle && !nNeedle && !eNeedle) {
-        return arrivedNorm.includes(aNeedle);
+        return rowContainsDateNeedle(row, aNeedle);
       }
 
       const nameOk = !nNeedle || nameVal.includes(nNeedle);
-      const emailOk = !eNeedle || emailVal === eNeedle;
-      const arrivedOk = !aNeedle || arrivedNorm.includes(aNeedle);
+      const emailOk = !eNeedle || emailVal.includes(eNeedle);
+      const arrivedOk = !aNeedle || rowContainsDateNeedle(row, aNeedle);
 
       return nameOk && emailOk && arrivedOk;
     }
@@ -874,6 +894,13 @@
       return "https://" + raw;
     }
 
+    function renderNotFoundBox(t) {
+      const info = totalFetchedRows > 0
+        ? `<div class="debug-note">Total baris terbaca dari API: <b>${totalFetchedRows}</b> · Kolom: <code>${sampleKeys || "-"}</code></div>`
+        : "";
+      return `<div class="state-box">${t.notFound}${info}</div>`;
+    }
+
     async function searchOrders() {
       const t = TEXT[currentLang];
       const nameQ = document.getElementById("nameInput").value.trim();
@@ -882,10 +909,7 @@
       const area = document.getElementById("contentArea");
       const btn = document.getElementById("checkBtn");
 
-      const hasBuyerPair = Boolean(nameQ && emailQ);
-      const hasArrivedFilter = Boolean(arrivedQ);
-
-      if (!hasBuyerPair && !hasArrivedFilter) {
+      if (!nameQ && !emailQ && !arrivedQ) {
         area.innerHTML = `<div class="state-box">${t.missingQuery}</div>`;
         return;
       }
@@ -903,6 +927,8 @@
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
         const rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+        totalFetchedRows = rows.length;
+        sampleKeys = rows[0] ? Object.keys(rows[0]).join(", ") : "";
 
         const parts = [];
         if (nameQ) parts.push(`"${nameQ}"`);
@@ -934,7 +960,7 @@
       });
 
       if (filtered.length === 0) {
-        area.innerHTML = `<div class="state-box">${t.notFound}</div>`;
+        area.innerHTML = renderNotFoundBox(t);
         return;
       }
 
@@ -952,7 +978,7 @@
         const brg = pickField(item, ["Item", "item", "barang"], "-");
         const qty = pickField(item, ["Jumlah (QTY)", "jumlahQty", "qty", "jumlah"], "-");
         const status = pickField(item, ["Status", "status"], "-");
-        const coRaw = pickField(item, ["Yes/No", "yes/no", "Yes No", "yesNo", "CO", "co", "Status CO", "statusCo", "Sudah CO", "sudahCo", "CO Shopee", "coShopee"], "");
+        const coRaw = pickField(item, ["DONE CO", "doneCo", "done_co", "Yes/No", "yes/no", "Yes No", "yesNo", "CO", "co", "Status CO", "statusCo", "Sudah CO", "sudahCo", "CO Shopee", "coShopee"], "");
         const coBadge = normalizeCoFlag(coRaw);
         const paid = parseNum(pickField(item, ["DP", "dp", "sudahBayar", "paid"], 0));
         const total = parseNum(pickField(item, ["Total", "total"], 0));
@@ -972,7 +998,1149 @@
           }
           if (due > 0) {
             arrivedDueTotal += due;
-            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) [CO: ${coBadge.label}] -> Pelunasan: ${formatIDR(due)}`);
+            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) [DONE CO: ${coBadge.label}] -> Pelunasan: ${formatIDR(due)}`);
+          }
+        }
+
+        const dueClass = due < 0 ? "neg" : (due === 0 ? "done-ok" : "");
+        const badgeCls = statusBadgeClass(status);
+
+        return `
+          <tr>
+            <td class="col-name">${nama}</td>
+            <td class="col-batch">${batch}</td>
+            <td class="col-item">${brg}</td>
+            <td class="col-qty">${qty}</td>
+            <td><span class="badge ${badgeCls}">${status}</span></td>
+            <td class="col-co"><span class="badge ${coBadge.cls}">${coBadge.label}</span></td>
+            <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
+            <td class="num">${formatIDR(paid)}</td>
+            <td class="num ${dueClass}">${formatIDR(due)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const formattedTotalDueAll = formatIDR(totalDueAll);
+      const formattedArrivedDue = formatIDR(arrivedDueTotal);
+      const buyerNameDisplay = pickField(filtered[0], ["Nama Depan", "namaDepan", "nama", "name"], lastQueryLabel);
+
+      const waMsgLines = [
+        `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order (khusus ARRIVED INA):`,
+        `Nama: ${buyerNameDisplay}`,
+        ...(arrivedItemsSummary.length > 0 ? arrivedItemsSummary : ["- Tidak ada item ARRIVED INA dengan sisa pelunasan"]),
+        ...(singleVariasiCo ? [`Variasi CO: ${singleVariasiCo}`] : []),
+        ...(singleShopeeLink ? [`Link Shopee: ${singleShopeeLink}`] : []),
+        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`
+      ];
+      const waHref = `https://wa.me/${CONFIRM_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
+
+      const hasCoInfo = arrivedCount > 0 && (singleShopeeLink || singleVariasiCo);
+      const coBoxHtml = hasCoInfo ? `
+        <div class="co-box">
+          <div class="co-title">${t.coTitle}</div>
+          ${singleVariasiCo ? `
+            <div class="co-row">
+              <div>
+                <div class="co-label">${t.coVarLabel}</div>
+                <div class="co-val">${singleVariasiCo}</div>
+              </div>
+              <button type="button" class="copy-btn" onclick="copyText('${singleVariasiCo.replace(/'/g, "\\'")}', this, '${t.copy}')">${t.copy}</button>
+            </div>
+          ` : ""}
+          ${singleShopeeLink ? `
+            <div class="co-row">
+              <div>
+                <div class="co-label">${t.coLinkLabel}</div>
+                <div class="co-val">${singleShopeeLink}</div>
+              </div>
+              <div class="co-actions">
+                <a class="co-link-btn" href="${singleShopeeLink}" target="_blank" rel="noopener">${t.openLink}</a>
+                <button type="button" class="copy-btn" onclick="copyText('${singleShopeeLink.replace(/'/g, "\\'")}', this, '${t.copyLink}')">${t.copyLink}</button>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+      ` : "";
+
+      const tncHtml = `
+        <div class="tnc-box">
+          <div class="tnc-title">${t.tncTitle}</div>
+          <ul class="tnc-list">
+            ${t.tncItems.map(line => `<li>${line}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+
+      area.innerHTML = `
+        <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span>${t.sumDueAll}</span>
+            <strong class="${totalDueAll < 0 ? "neg" : (totalDueAll === 0 ? "done-ok" : "")}">${formattedTotalDueAll}</strong>
+            <span class="summary-sub">${t.sumDueArrivedOnly(formattedArrivedDue)}</span>
+          </div>
+          <div class="summary-card">
+            <span>${t.sumTotal}</span>
+            <strong>${formatIDR(totalAmt)}</strong>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>${t.thName}</th>
+                <th>${t.thBatch}</th>
+                <th>${t.thItem}</th>
+                <th style="text-align:center;">${t.thQty}</th>
+                <th>${t.thStatus}</th>
+                <th style="text-align:center;">${t.thCo}</th>
+                <th class="num">${t.thTotal}</th>
+                <th class="num">${t.thPaid}</th>
+                <th class="num">${t.thDue}</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        <div class="scroll-hint">${t.scrollHint}</div>
+        ${coBoxHtml}
+        <div class="payment-card">
+          <div class="payment-head">
+            <div class="payment-title">${t.payTitle}</div>
+            <div class="qris-note">${t.qrisNote}</div>
+          </div>
+          <div class="payment-due-banner">
+            <span>${t.payArrivedLabel}</span>
+            <strong class="${arrivedDueTotal < 0 ? "neg" : (arrivedDueTotal === 0 ? "done-ok" : "")}">${formattedArrivedDue}</strong>
+          </div>
+          <div class="bank-grid">
+            <div class="bank-box">
+              <div>
+                <div class="bank-name">${PAYMENT_INFO.bca.label}</div>
+                <div class="bank-acc">${PAYMENT_INFO.bca.account}</div>
+                <div class="bank-holder">${PAYMENT_INFO.bca.holder}</div>
+              </div>
+              <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.bca.account}', this, '${t.copy}')">${t.copy}</button>
+            </div>
+            <div class="bank-box">
+              <div>
+                <div class="bank-name">${PAYMENT_INFO.seabank.label}</div>
+                <div class="bank-acc">${PAYMENT_INFO.seabank.account}</div>
+                <div class="bank-holder">${PAYMENT_INFO.seabank.holder}</div>
+              </div>
+              <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.seabank.account}', this, '${t.copy}')">${t.copy}</button>
+            </div>
+          </div>
+          ${tncHtml}
+          <a class="confirm-wa-btn" href="${waHref}" target="_blank" rel="noopener">
+            <span>💬</span> <span>${t.confirmWa(formattedArrivedDue)}</span>
+          </a>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracking Order — ByCimo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #F4F8FF;
+      --card: #FFFFFF;
+      --blue-soft: #DCEAFF;
+      --blue-border: #C3DAFF;
+      --blue-main: #2563EB;
+      --blue-dark: #1E40AF;
+      --mint-soft: #DCFCE7;
+      --mint-ink: #15803D;
+      --blue-badge: #DBEAFE;
+      --blue-ink: #1D4ED8;
+      --gray-badge: #F1F5F9;
+      --gray-ink: #475569;
+      --amber-soft: #FEF3C7;
+      --amber-ink: #B45309;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --border: #DCE7F9;
+      --red: #DC2626;
+      --green: #16A34A;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding-bottom: 56px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(244, 248, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand-pill {
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-box {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+    }
+
+    .menu-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--blue-border);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 18px 16px 0;
+    }
+
+    .search-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.05);
+    }
+
+    .search-box input {
+      flex: 1 1 170px;
+      min-width: 0;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--blue-border);
+      font-size: 14px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--blue-main);
+    }
+
+    .btn-check {
+      padding: 11px 16px;
+      border-radius: 10px;
+      border: none;
+      background: var(--blue-main);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-check:hover {
+      background: var(--blue-dark);
+    }
+
+    .btn-check:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--blue-border);
+      background: var(--card);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .action-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--blue-border);
+      background: var(--card);
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-btn:hover {
+      background: var(--blue-soft);
+    }
+
+    .meta-line {
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--ink);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 13px;
+    }
+
+    .summary-card span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .summary-card strong {
+      font-size: 14px;
+    }
+
+    .summary-sub {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow-x: auto;
+      margin-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 780px;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: #F9FBFF;
+    }
+
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #EEF3FC;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .col-name { font-weight: 700; white-space: nowrap; }
+    .col-batch { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .col-item { font-weight: 500; line-height: 1.4; min-width: 180px; }
+    .col-qty { text-align: center; font-weight: 600; white-space: nowrap; }
+    .col-co { text-align: center; white-space: nowrap; }
+
+    .scroll-hint {
+      text-align: right;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .b-arrive { background: var(--mint-soft); color: var(--mint-ink); }
+    .b-otw { background: var(--blue-badge); color: var(--blue-ink); }
+    .b-other { background: var(--gray-badge); color: var(--gray-ink); }
+
+    .co-yes { background: var(--mint-soft); color: var(--mint-ink); }
+    .co-no { background: var(--amber-soft); color: var(--amber-ink); }
+    .co-none { background: var(--gray-badge); color: var(--gray-ink); }
+
+    .num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .neg { color: var(--red); font-weight: 700; }
+    .done-ok { color: var(--green); font-weight: 700; }
+
+    .co-box {
+      background: var(--card);
+      border: 1px solid var(--blue-border);
+      border-radius: 14px;
+      padding: 13px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .co-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
+
+    .co-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12.5px;
+    }
+
+    .co-label {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .co-val {
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: 2px;
+      word-break: break-all;
+    }
+
+    .co-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .co-link-btn {
+      padding: 6px 11px;
+      border-radius: 8px;
+      background: var(--blue-main);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .co-link-btn:hover {
+      background: var(--blue-dark);
+    }
+
+    .payment-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.04);
+    }
+
+    .payment-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .payment-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .qris-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .payment-due-banner {
+      background: #F4F8FF;
+      border: 1px solid var(--blue-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .payment-due-banner strong {
+      font-size: 14px;
+      color: var(--blue-dark);
+    }
+
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 560px) {
+      .bank-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .bank-box {
+      border: 1px solid var(--border);
+      background: #F9FBFF;
+      border-radius: 10px;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bank-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .bank-acc {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bank-holder {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .copy-btn {
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--blue-border);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tnc-box {
+      background: #F9FBFF;
+      border: 1px dashed var(--blue-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11.5px;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    .tnc-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--blue-dark);
+      margin-bottom: 4px;
+    }
+
+    .tnc-list {
+      padding-left: 16px;
+      color: var(--muted);
+    }
+
+    .tnc-list li {
+      margin-bottom: 2px;
+    }
+
+    .tnc-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .confirm-wa-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      background: #16A34A;
+      color: #FFFFFF;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .confirm-wa-btn:hover {
+      background: #15803D;
+    }
+
+    .state-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .debug-note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="#" class="brand-pill" id="brandPill" onclick="resetView(event)">ByCimo</a>
+    <div class="top-actions">
+      <div class="lang-box">
+        <button type="button" class="lang-btn" id="langEN" onclick="changeLang('en')">EN</button>
+        <button type="button" class="lang-btn active" id="langID" onclick="changeLang('id')">ID</button>
+      </div>
+      <button type="button" class="menu-btn" onclick="focusInput()" aria-label="Search">≡</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <form class="search-box" onsubmit="event.preventDefault(); searchOrders();">
+      <input type="text" id="nameInput" placeholder="Nama pembeli..." autocomplete="off" />
+      <input type="email" id="emailInput" placeholder="Email pembeli..." autocomplete="off" />
+      <input type="text" id="arrivedInput" placeholder="Tgl arrived (cth: 15 nov)..." autocomplete="off" />
+      <button type="submit" class="btn-check" id="checkBtn">Cek Order</button>
+    </form>
+
+    <div class="toolbar">
+      <select class="filter-select" id="statusFilter" onchange="renderOrders()">
+        <option value="not_done">Status: Not Done</option>
+        <option value="all">Status: All</option>
+        <option value="done">Status: Done</option>
+      </select>
+
+      <div class="action-links">
+        <a class="pill-btn" id="igBtn" href="https://www.instagram.com/bycimo/" target="_blank" rel="noopener">
+          <span>📸</span> <span>@bycimo</span>
+        </a>
+        <a class="pill-btn" id="adminBtn" href="#" target="_blank" rel="noopener">
+          <span>💬</span> <span id="adminLabel">Ask Admin</span>
+        </a>
+      </div>
+    </div>
+
+    <div id="contentArea">
+      <div class="state-box" id="welcomeBox">Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>15 nov</code>) lalu tekan <b>Cek Order</b>.</div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
+    const ASK_ADMIN_WA = "6285810117201";
+    const CONFIRM_WA = "6285781683952";
+    const BRAND_NAME = "ByCimo";
+    const IG_URL = "https://www.instagram.com/bycimo/";
+
+    const PAYMENT_INFO = {
+      bca: {
+        label: "BCA",
+        account: "8555129579",
+        holder: "a/n Nadifa Aulia"
+      },
+      seabank: {
+        label: "SEABANK",
+        account: "901061923808",
+        holder: "a/n Nadifa Aulia"
+      }
+    };
+
+    let currentLang = "id";
+    let ordersData = [];
+    let lastQueryLabel = "";
+    let totalFetchedRows = 0;
+    let sampleKeys = "";
+
+    const TEXT = {
+      id: {
+        namePlaceholder: "Nama pembeli...",
+        emailPlaceholder: "Email pembeli...",
+        arrivedPlaceholder: "Tgl arrived (cth: 15 nov)...",
+        check: "Cek Order",
+        loading: "Mencari data...",
+        admin: "Ask Admin",
+        notDone: "Status: Not Done",
+        all: "Status: All",
+        done: "Status: Done",
+        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>15 nov</code>) lalu tekan <b>Cek Order</b>.',
+        missingQuery: "Masukkan Nama & Email pembeli, atau isi Tgl arrived terlebih dahulu.",
+        missingApi: "URL Google Apps Script (<code>API_URL</code>) belum diisi pada file <code>index.html</code>.",
+        fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b> dan pakai URL berakhiran <b>/exec</b>.",
+        notFound: "Data order tidak ditemukan untuk pencarian atau filter tersebut.",
+        showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk ${q}`,
+        sumDueAll: "Total Sisa Pelunasan (Semua Status)",
+        sumDueArrivedOnly: (amt) => `Khusus ARRIVED INA: ${amt}`,
+        sumTotal: "Total Nominal",
+        payArrivedLabel: "Nominal Pelunasan (Khusus ARRIVED INA)",
+        scrollHint: "Geser tabel ke kanan untuk melihat CO, Total, DP, dan Pelunasan →",
+        coTitle: "🛒 Info Checkout Shopee Pelunasan (ARRIVED INA)",
+        coLinkLabel: "Link Shopee (1x CO)",
+        coVarLabel: "Variasi CO",
+        openLink: "Buka Link",
+        copyLink: "Salin Link",
+        payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
+        qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
+        copy: "Salin No. Rek",
+        copied: "Tersalin",
+        tncTitle: "TnC Pelunasan",
+        tncItems: [
+          "Saat CO SHOPEE cukup tulis nama + Tanggal ARRIVED sesuai orderan",
+          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~"
+        ],
+        confirmWa: (amt) => `Konfirmasi Pelunasan ke Admin (${amt})`,
+        thName: "NAMA",
+        thBatch: "BATCH",
+        thItem: "ITEM",
+        thQty: "QTY",
+        thStatus: "STATUS",
+        thCo: "DONE CO",
+        thTotal: "TOTAL",
+        thPaid: "DP",
+        thDue: "PELUNASAN"
+      },
+      en: {
+        namePlaceholder: "Buyer name...",
+        emailPlaceholder: "Buyer email...",
+        arrivedPlaceholder: "Arrived date (e.g. 15 nov)...",
+        check: "Check Order",
+        loading: "Searching...",
+        admin: "Ask Admin",
+        notDone: "Status: Not Done",
+        all: "Status: All",
+        done: "Status: Done",
+        welcome: 'Enter buyer <b>Name</b> and <b>Email</b>, or type <b>Arrived date</b> (e.g. <code>15 nov</code>) and tap <b>Check Order</b>.',
+        missingQuery: "Please enter buyer Name & Email, or fill Arrived date first.",
+        missingApi: "Google Apps Script URL (<code>API_URL</code>) is not set in <code>index.html</code>.",
+        fetchErr: "Failed to load data from Google Sheets. Make sure Web App is deployed as <b>Anyone</b> and uses the <b>/exec</b> URL.",
+        notFound: "No orders found for this search or filter.",
+        showing: (a, b, q) => `Showing ${a} of ${b} orders for ${q}`,
+        sumDueAll: "Total Remaining Balance (All Status)",
+        sumDueArrivedOnly: (amt) => `ARRIVED INA Only: ${amt}`,
+        sumTotal: "Total Amount",
+        payArrivedLabel: "Payment Due (ARRIVED INA Only)",
+        scrollHint: "Scroll table right to see CO, Total, DP, and Balance →",
+        coTitle: "🛒 Shopee Checkout Info (ARRIVED INA)",
+        coLinkLabel: "Shopee Link (Single CO)",
+        coVarLabel: "CO Variation",
+        openLink: "Open Link",
+        copyLink: "Copy Link",
+        payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
+        qrisNote: "QRIS > Rp 100.000 requires +0.3%",
+        copy: "Copy Acc No.",
+        copied: "Copied",
+        tncTitle: "Payment TnC",
+        tncItems: [
+          "Saat CO SHOPEE cukup tulis nama + Tanggal ARRIVED sesuai orderan",
+          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~"
+        ],
+        confirmWa: (amt) => `Confirm Payment to Admin (${amt})`,
+        thName: "NAME",
+        thBatch: "BATCH",
+        thItem: "ITEM",
+        thQty: "QTY",
+        thStatus: "STATUS",
+        thCo: "DONE CO",
+        thTotal: "TOTAL",
+        thPaid: "DP",
+        thDue: "BALANCE"
+      }
+    };
+
+    document.getElementById("brandPill").textContent = BRAND_NAME;
+    document.getElementById("igBtn").href = IG_URL;
+    document.getElementById("adminBtn").href = `https://wa.me/${ASK_ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
+
+    function focusInput() {
+      const el = document.getElementById("nameInput");
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function resetView(e) {
+      if (e) e.preventDefault();
+      lastQueryLabel = "";
+      ordersData = [];
+      document.getElementById("nameInput").value = "";
+      document.getElementById("emailInput").value = "";
+      document.getElementById("arrivedInput").value = "";
+      document.getElementById("contentArea").innerHTML = `<div class="state-box">${TEXT[currentLang].welcome}</div>`;
+    }
+
+    function changeLang(lang) {
+      currentLang = lang;
+      document.getElementById("langID").classList.toggle("active", lang === "id");
+      document.getElementById("langEN").classList.toggle("active", lang === "en");
+
+      const t = TEXT[lang];
+      document.getElementById("nameInput").placeholder = t.namePlaceholder;
+      document.getElementById("emailInput").placeholder = t.emailPlaceholder;
+      document.getElementById("arrivedInput").placeholder = t.arrivedPlaceholder;
+      document.getElementById("checkBtn").textContent = t.check;
+      document.getElementById("adminLabel").textContent = t.admin;
+
+      const sel = document.getElementById("statusFilter");
+      sel.options[0].text = t.notDone;
+      sel.options[1].text = t.all;
+      sel.options[2].text = t.done;
+
+      if (lastQueryLabel) {
+        renderOrders();
+      } else {
+        document.getElementById("contentArea").innerHTML = `<div class="state-box">${t.welcome}</div>`;
+      }
+    }
+
+    function copyText(val, btnEl, fallbackLabel) {
+      const t = TEXT[currentLang];
+      navigator.clipboard.writeText(val).then(() => {
+        const prev = btnEl.textContent;
+        btnEl.textContent = t.copied;
+        setTimeout(() => {
+          btnEl.textContent = fallbackLabel || prev || t.copy;
+        }, 1500);
+      });
+    }
+
+    function parseNum(val) {
+      if (typeof val === "number") return isNaN(val) ? 0 : val;
+      const cleaned = String(val || "0")
+        .replace(/rp/gi, "")
+        .replace(/\s+/g, "")
+        .replace(/,/g, "")
+        .trim();
+      if (!cleaned) return 0;
+      const n = Number(cleaned);
+      if (!isNaN(n)) return n;
+      const dotCleaned = cleaned.replace(/\./g, "");
+      const n2 = Number(dotCleaned);
+      return isNaN(n2) ? 0 : n2;
+    }
+
+    function formatIDR(val) {
+      const num = parseNum(val);
+      const prefix = num < 0 ? "-Rp " : "Rp ";
+      return prefix + Math.abs(num).toLocaleString("id-ID");
+    }
+
+    function pickField(row, keys, fallback = "") {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "") {
+          return row[k];
+        }
+      }
+      const lowerMap = {};
+      Object.keys(row || {}).forEach(origKey => {
+        lowerMap[origKey.toLowerCase().replace(/[^a-z0-9]/g, "")] = row[origKey];
+      });
+      for (const k of keys) {
+        const norm = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (lowerMap[norm] !== undefined && lowerMap[norm] !== null && String(lowerMap[norm]).trim() !== "") {
+          return lowerMap[norm];
+        }
+      }
+      return fallback;
+    }
+
+    function isArrivedIna(status) {
+      const s = String(status || "").trim().toLowerCase().replace(/\s+/g, " ");
+      return s === "arrived ina" || s.includes("arrived ina") || s === "arrived_ina" || s === "arrivedina";
+    }
+
+    function statusBadgeClass(status) {
+      const s = String(status || "").toLowerCase();
+      if (isArrivedIna(s) || s.includes("arriv") || s.includes("indo") || s.includes("ready")) return "b-arrive";
+      if (s.includes("otw") || s.includes("ship") || s.includes("flight") || s.includes("sea") || s.includes("wh")) return "b-otw";
+      return "b-other";
+    }
+
+    function normalizeCoFlag(val) {
+      const raw = String(val || "").trim();
+      if (!raw) return { label: "-", cls: "co-none" };
+      const low = raw.toLowerCase();
+      if (low === "yes" || low === "y" || low === "sudah" || low === "ya" || low === "true" || low === "done") {
+        return { label: raw.toUpperCase(), cls: "co-yes" };
+      }
+      if (low === "no" || low === "n" || low === "belum" || low === "false") {
+        return { label: raw.toUpperCase(), cls: "co-no" };
+      }
+      return { label: raw, cls: "co-none" };
+    }
+
+    function normalizeDateText(val) {
+      const monthMap = {
+        januari: "jan", feb: "feb", februari: "feb",
+        mar: "mar", maret: "mar", apr: "apr", april: "apr",
+        mei: "may", jun: "jun", juni: "jun",
+        jul: "jul", juli: "jul", agu: "aug", agustus: "aug",
+        sep: "sep", sept: "sep", september: "sep",
+        okt: "oct", oktober: "oct",
+        nov: "nov", november: "nov",
+        des: "dec", desember: "dec"
+      };
+      let s = String(val || "")
+        .toLowerCase()
+        .replace(/\b(arrived|tgl|tanggal|ina|batch)\b/g, " ")
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      s = s.split(" ").map(tok => monthMap[tok] || tok).join(" ");
+      return s;
+    }
+
+    function rowContainsDateNeedle(row, aNeedle) {
+      if (!aNeedle) return true;
+      const values = Object.values(row || {}).filter(v => v !== null && v !== undefined);
+      return values.some(v => normalizeDateText(v).includes(aNeedle));
+    }
+
+    function matchesQuery(row, nameQ, emailQ, arrivedQ) {
+      const nNeedle = nameQ.toLowerCase();
+      const eNeedle = emailQ.toLowerCase();
+      const aNeedle = normalizeDateText(arrivedQ);
+
+      const nameVal = String(pickField(row, ["Nama Depan", "namaDepan", "nama", "name"], "")).trim().toLowerCase();
+      const emailVal = String(pickField(row, ["Email", "email", "mail"], "")).trim().toLowerCase();
+
+      if (aNeedle && !nNeedle && !eNeedle) {
+        return rowContainsDateNeedle(row, aNeedle);
+      }
+
+      const nameOk = !nNeedle || nameVal.includes(nNeedle);
+      const emailOk = !eNeedle || emailVal.includes(eNeedle);
+      const arrivedOk = !aNeedle || rowContainsDateNeedle(row, aNeedle);
+
+      return nameOk && emailOk && arrivedOk;
+    }
+
+    function sanitizeUrl(url) {
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      return "https://" + raw;
+    }
+
+    function renderNotFoundBox(t) {
+      const info = totalFetchedRows > 0
+        ? `<div class="debug-note">Total baris terbaca dari API: <b>${totalFetchedRows}</b> · Kolom: <code>${sampleKeys || "-"}</code></div>`
+        : "";
+      return `<div class="state-box">${t.notFound}${info}</div>`;
+    }
+
+    async function searchOrders() {
+      const t = TEXT[currentLang];
+      const nameQ = document.getElementById("nameInput").value.trim();
+      const emailQ = document.getElementById("emailInput").value.trim();
+      const arrivedQ = document.getElementById("arrivedInput").value.trim();
+      const area = document.getElementById("contentArea");
+      const btn = document.getElementById("checkBtn");
+
+      if (!nameQ && !emailQ && !arrivedQ) {
+        area.innerHTML = `<div class="state-box">${t.missingQuery}</div>`;
+        return;
+      }
+
+      if (!API_URL || API_URL.includes("PASTE_URL_WEB_APP_KAMU_DI_SINI")) {
+        area.innerHTML = `<div class="state-box">${t.missingApi}</div>`;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = t.loading;
+
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+        totalFetchedRows = rows.length;
+        sampleKeys = rows[0] ? Object.keys(rows[0]).join(", ") : "";
+
+        const parts = [];
+        if (nameQ) parts.push(`"${nameQ}"`);
+        if (emailQ) parts.push(`"${emailQ}"`);
+        if (arrivedQ) parts.push(`Tgl Arrived "${arrivedQ}"`);
+        lastQueryLabel = parts.join(" & ");
+
+        ordersData = rows.filter(r => matchesQuery(r, nameQ, emailQ, arrivedQ));
+        renderOrders();
+      } catch (err) {
+        area.innerHTML = `<div class="state-box">${t.fetchErr}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = TEXT[currentLang].check;
+      }
+    }
+
+    function renderOrders() {
+      const t = TEXT[currentLang];
+      const area = document.getElementById("contentArea");
+      const filter = document.getElementById("statusFilter").value;
+
+      const filtered = ordersData.filter(item => {
+        const doneFlag = String(pickField(item, ["DONE", "done", "statusDone"], "")).trim().toLowerCase();
+        const isDone = doneFlag === "yes" || doneFlag === "done" || doneFlag === "true" || doneFlag === "lunas";
+        if (filter === "not_done") return !isDone;
+        if (filter === "done") return isDone;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        area.innerHTML = renderNotFoundBox(t);
+        return;
+      }
+
+      let totalDueAll = 0;
+      let arrivedDueTotal = 0;
+      let totalAmt = 0;
+      let arrivedCount = 0;
+      let singleShopeeLink = "";
+      let singleVariasiCo = "";
+      const arrivedItemsSummary = [];
+
+      const rowsHtml = filtered.map(item => {
+        const nama = pickField(item, ["Nama Depan", "namaDepan", "nama", "name"], "-");
+        const batch = pickField(item, ["Batch", "batch"], "-");
+        const brg = pickField(item, ["Item", "item", "barang"], "-");
+        const qty = pickField(item, ["Jumlah (QTY)", "jumlahQty", "qty", "jumlah"], "-");
+        const status = pickField(item, ["Status", "status"], "-");
+        const coRaw = pickField(item, ["DONE CO", "doneCo", "done_co", "Yes/No", "yes/no", "Yes No", "yesNo", "CO", "co", "Status CO", "statusCo", "Sudah CO", "sudahCo", "CO Shopee", "coShopee"], "");
+        const coBadge = normalizeCoFlag(coRaw);
+        const paid = parseNum(pickField(item, ["DP", "dp", "sudahBayar", "paid"], 0));
+        const total = parseNum(pickField(item, ["Total", "total"], 0));
+        const rawDue = pickField(item, ["Pelunasan", "pelunasan", "balance"], null);
+        const due = rawDue !== null ? parseNum(rawDue) : (total - paid);
+
+        totalAmt += total;
+        totalDueAll += due;
+
+        if (isArrivedIna(status)) {
+          arrivedCount += 1;
+          if (!singleShopeeLink) {
+            singleShopeeLink = sanitizeUrl(pickField(item, ["Link Shopee", "linkShopee", "link_shopee", "shopeeLink", "link"], ""));
+          }
+          if (!singleVariasiCo) {
+            singleVariasiCo = String(pickField(item, ["Variasi CO", "variasiCo", "variasi_co", "variasi", "variation"], "")).trim();
+          }
+          if (due > 0) {
+            arrivedDueTotal += due;
+            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) [DONE CO: ${coBadge.label}] -> Pelunasan: ${formatIDR(due)}`);
           }
         }
 
