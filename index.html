@@ -256,7 +256,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 780px;
+      min-width: 900px;
       font-size: 13px;
     }
 
@@ -286,6 +286,7 @@
     .col-item { font-weight: 500; line-height: 1.4; min-width: 180px; }
     .col-qty { text-align: center; font-weight: 600; white-space: nowrap; }
     .col-co { text-align: center; white-space: nowrap; }
+    .col-proof { font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 
     .scroll-hint {
       text-align: right;
@@ -748,7 +749,7 @@
         sumDueArrivedOnly: (amt) => `Khusus ARRIVED INA: ${amt}`,
         sumTotal: "Total Nominal",
         payArrivedLabel: "Nominal Pelunasan (Khusus ARRIVED INA)",
-        scrollHint: "Geser tabel ke kanan untuk melihat Total, DP, Pelunasan, dan DONE CO →",
+        scrollHint: "Geser tabel ke kanan untuk melihat Total, DP, Pelunasan, DONE CO, dan Bukti TF →",
         coTitle: "🛒 Info Checkout Shopee Pelunasan (ARRIVED INA)",
         coLinkLabel: "Link Shopee (1x CO)",
         coVarLabel: "Variasi CO",
@@ -757,7 +758,7 @@
         payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
         qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
         qrisLabel: "Barcode QRIS",
-        qrisDesc: "Klik gambar barcode untuk memperbesar. Sertakan bukti transfer saat mengirim konfirmasi ke WA.",
+        qrisDesc: "Klik gambar barcode untuk memperbesar.",
         qrisZoom: "Perbesar",
         qrisClose: "Tutup",
         copy: "Salin",
@@ -773,10 +774,12 @@
         thItem: "ITEM",
         thQty: "QTY",
         thStatus: "STATUS",
-        thCo: "DONE CO",
         thTotal: "TOTAL",
         thPaid: "DP",
-        thDue: "PELUNASAN"
+        thDue: "PELUNASAN",
+        thCo: "DONE CO",
+        thProof: "BUKTI TF",
+        proofNote: "Sertakan bukti transfer"
       },
       en: {
         namePlaceholder: "Buyer name...",
@@ -798,7 +801,7 @@
         sumDueArrivedOnly: (amt) => `ARRIVED INA Only: ${amt}`,
         sumTotal: "Total Amount",
         payArrivedLabel: "Payment Due (ARRIVED INA Only)",
-        scrollHint: "Scroll table right to see Total, DP, Balance, and DONE CO →",
+        scrollHint: "Scroll table right to see Total, DP, Balance, DONE CO, and Proof →",
         coTitle: "🛒 Shopee Checkout Info (ARRIVED INA)",
         coLinkLabel: "Shopee Link (Single CO)",
         coVarLabel: "CO Variation",
@@ -807,7 +810,7 @@
         payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
         qrisNote: "QRIS > Rp 100.000 requires +0.3%",
         qrisLabel: "QRIS Barcode",
-        qrisDesc: "Tap barcode to zoom. Attach your transfer proof when sending WA confirmation.",
+        qrisDesc: "Tap barcode to zoom.",
         qrisZoom: "Zoom",
         qrisClose: "Close",
         copy: "Copy",
@@ -823,10 +826,12 @@
         thItem: "ITEM",
         thQty: "QTY",
         thStatus: "STATUS",
-        thCo: "DONE CO",
         thTotal: "TOTAL",
         thPaid: "DP",
-        thDue: "BALANCE"
+        thDue: "BALANCE",
+        thCo: "DONE CO",
+        thProof: "TRANSFER PROOF",
+        proofNote: "Include transfer proof"
       }
     };
 
@@ -1189,6 +1194,7 @@
             <td class="num">${formatIDR(paid)}</td>
             <td class="num ${dueClass}">${formatIDR(due)}</td>
             <td class="col-co"><span class="badge ${coBadge.cls}">${escapeHtml(coBadge.label)}</span></td>
+            <td class="col-proof">${escapeHtml(t.proofNote)}</td>
           </tr>
         `;
       }).join("");
@@ -1201,10 +1207,7 @@
         `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order (khusus ARRIVED INA):`,
         `Nama: ${buyerNameDisplay}`,
         ...(arrivedItemsSummary.length > 0 ? arrivedItemsSummary : ["- Tidak ada item ARRIVED INA dengan sisa pelunasan"]),
-        ...(singleVariasiCo ? [`Variasi CO: ${singleVariasiCo}`] : []),
-        ...(singleShopeeLink ? [`Link Shopee: ${singleShopeeLink}`] : []),
-        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`,
-        `Bukti Transfer: *(sertakan bukti transfer pada chat WA ini ya min)*`
+        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`
       ];
       const waHref = `https://wa.me/${CONFIRM_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
 
@@ -1284,6 +1287,7 @@
                 <th class="num">${t.thPaid}</th>
                 <th class="num">${t.thDue}</th>
                 <th style="text-align:center;">${t.thCo}</th>
+                <th>${t.thProof}</th>
               </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
