@@ -19,6 +19,8 @@
       --blue-ink: #1D4ED8;
       --gray-badge: #F1F5F9;
       --gray-ink: #475569;
+      --amber-soft: #FEF3C7;
+      --amber-ink: #B45309;
       --ink: #0F172A;
       --muted: #64748B;
       --border: #DCE7F9;
@@ -124,7 +126,7 @@
     }
 
     .search-box input {
-      flex: 1 1 190px;
+      flex: 1 1 170px;
       min-width: 0;
       padding: 11px 14px;
       border-radius: 10px;
@@ -254,7 +256,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 720px;
+      min-width: 780px;
       font-size: 13px;
     }
 
@@ -283,6 +285,7 @@
     .col-batch { color: var(--muted); font-weight: 600; white-space: nowrap; }
     .col-item { font-weight: 500; line-height: 1.4; min-width: 180px; }
     .col-qty { text-align: center; font-weight: 600; white-space: nowrap; }
+    .col-co { text-align: center; white-space: nowrap; }
 
     .scroll-hint {
       text-align: right;
@@ -303,6 +306,10 @@
     .b-arrive { background: var(--mint-soft); color: var(--mint-ink); }
     .b-otw { background: var(--blue-badge); color: var(--blue-ink); }
     .b-other { background: var(--gray-badge); color: var(--gray-ink); }
+
+    .co-yes { background: var(--mint-soft); color: var(--mint-ink); }
+    .co-no { background: var(--amber-soft); color: var(--amber-ink); }
+    .co-none { background: var(--gray-badge); color: var(--gray-ink); }
 
     .num {
       text-align: right;
@@ -478,6 +485,39 @@
       white-space: nowrap;
     }
 
+    .tnc-box {
+      background: #F9FBFF;
+      border: 1px dashed var(--blue-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11.5px;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    .tnc-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--blue-dark);
+      margin-bottom: 4px;
+    }
+
+    .tnc-list {
+      padding-left: 16px;
+      color: var(--muted);
+    }
+
+    .tnc-list li {
+      margin-bottom: 2px;
+    }
+
+    .tnc-list li:last-child {
+      margin-bottom: 0;
+    }
+
     .confirm-wa-btn {
       display: flex;
       align-items: center;
@@ -526,6 +566,7 @@
     <form class="search-box" onsubmit="event.preventDefault(); searchOrders();">
       <input type="text" id="nameInput" placeholder="Nama pembeli..." autocomplete="off" />
       <input type="email" id="emailInput" placeholder="Email pembeli..." autocomplete="off" />
+      <input type="text" id="arrivedInput" placeholder="Tgl arrived (cth: 16 Nov)..." autocomplete="off" />
       <button type="submit" class="btn-check" id="checkBtn">Cek Order</button>
     </form>
 
@@ -547,13 +588,14 @@
     </div>
 
     <div id="contentArea">
-      <div class="state-box" id="welcomeBox">Masukkan <b>Nama</b> dan <b>Email</b> pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.</div>
+      <div class="state-box" id="welcomeBox">Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>16 Nov</code>) lalu tekan <b>Cek Order</b>.</div>
     </div>
   </main>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
-    const ADMIN_WA = "6285810117201";
+    const ASK_ADMIN_WA = "6285810117201";
+    const CONFIRM_WA = "6285781683952";
     const BRAND_NAME = "ByCimo";
     const IG_URL = "https://www.instagram.com/bycimo/";
 
@@ -578,23 +620,24 @@
       id: {
         namePlaceholder: "Nama pembeli...",
         emailPlaceholder: "Email pembeli...",
+        arrivedPlaceholder: "Tgl arrived (cth: 16 Nov)...",
         check: "Cek Order",
         loading: "Mencari data...",
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
         done: "Status: Done",
-        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.',
-        missingBoth: "Masukkan Nama dan Email pembeli terlebih dahulu.",
+        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli, atau ketik <b>Tgl arrived</b> (contoh: <code>16 Nov</code>) lalu tekan <b>Cek Order</b>.',
+        missingQuery: "Masukkan Nama & Email pembeli, atau isi Tgl arrived terlebih dahulu.",
         missingApi: "URL Google Apps Script (<code>API_URL</code>) belum diisi pada file <code>index.html</code>.",
         fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b> dan pakai URL berakhiran <b>/exec</b>.",
-        notFound: "Data order tidak ditemukan untuk kombinasi nama, email, atau filter tersebut.",
+        notFound: "Data order tidak ditemukan untuk pencarian atau filter tersebut.",
         showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk ${q}`,
         sumDueAll: "Total Sisa Pelunasan (Semua Status)",
         sumDueArrivedOnly: (amt) => `Khusus ARRIVED INA: ${amt}`,
         sumTotal: "Total Nominal",
         payArrivedLabel: "Nominal Pelunasan (Khusus ARRIVED INA)",
-        scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
+        scrollHint: "Geser tabel ke kanan untuk melihat CO, Total, DP, dan Pelunasan →",
         coTitle: "🛒 Info Checkout Shopee Pelunasan (ARRIVED INA)",
         coLinkLabel: "Link Shopee (1x CO)",
         coVarLabel: "Variasi CO",
@@ -604,12 +647,18 @@
         qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
         copy: "Salin No. Rek",
         copied: "Tersalin",
+        tncTitle: "TnC Pelunasan",
+        tncItems: [
+          "Saat CO SHOPEE cukup tulis nama + Tanggal ARRIVED sesuai orderan",
+          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~"
+        ],
         confirmWa: (amt) => `Konfirmasi Pelunasan ke Admin (${amt})`,
         thName: "NAMA",
         thBatch: "BATCH",
         thItem: "ITEM",
         thQty: "QTY",
         thStatus: "STATUS",
+        thCo: "CO",
         thTotal: "TOTAL",
         thPaid: "DP",
         thDue: "PELUNASAN"
@@ -617,23 +666,24 @@
       en: {
         namePlaceholder: "Buyer name...",
         emailPlaceholder: "Buyer email...",
+        arrivedPlaceholder: "Arrived date (e.g. 16 Nov)...",
         check: "Check Order",
         loading: "Searching...",
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
         done: "Status: Done",
-        welcome: 'Enter both buyer <b>Name</b> and <b>Email</b> and tap <b>Check Order</b> to view item status and balance.',
-        missingBoth: "Please enter both buyer Name and Email.",
+        welcome: 'Enter buyer <b>Name</b> and <b>Email</b>, or type <b>Arrived date</b> (e.g. <code>16 Nov</code>) and tap <b>Check Order</b>.',
+        missingQuery: "Please enter buyer Name & Email, or fill Arrived date first.",
         missingApi: "Google Apps Script URL (<code>API_URL</code>) is not set in <code>index.html</code>.",
         fetchErr: "Failed to load data from Google Sheets. Make sure Web App is deployed as <b>Anyone</b> and uses the <b>/exec</b> URL.",
-        notFound: "No orders found for this name, email, or filter.",
+        notFound: "No orders found for this search or filter.",
         showing: (a, b, q) => `Showing ${a} of ${b} orders for ${q}`,
         sumDueAll: "Total Remaining Balance (All Status)",
         sumDueArrivedOnly: (amt) => `ARRIVED INA Only: ${amt}`,
         sumTotal: "Total Amount",
         payArrivedLabel: "Payment Due (ARRIVED INA Only)",
-        scrollHint: "Scroll table right to see Qty, Total, DP, and Balance →",
+        scrollHint: "Scroll table right to see CO, Total, DP, and Balance →",
         coTitle: "🛒 Shopee Checkout Info (ARRIVED INA)",
         coLinkLabel: "Shopee Link (Single CO)",
         coVarLabel: "CO Variation",
@@ -643,12 +693,18 @@
         qrisNote: "QRIS > Rp 100.000 requires +0.3%",
         copy: "Copy Acc No.",
         copied: "Copied",
+        tncTitle: "Payment TnC",
+        tncItems: [
+          "Saat CO SHOPEE cukup tulis nama + Tanggal ARRIVED sesuai orderan",
+          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~"
+        ],
         confirmWa: (amt) => `Confirm Payment to Admin (${amt})`,
         thName: "NAME",
         thBatch: "BATCH",
         thItem: "ITEM",
         thQty: "QTY",
         thStatus: "STATUS",
+        thCo: "CO",
         thTotal: "TOTAL",
         thPaid: "DP",
         thDue: "BALANCE"
@@ -657,7 +713,7 @@
 
     document.getElementById("brandPill").textContent = BRAND_NAME;
     document.getElementById("igBtn").href = IG_URL;
-    document.getElementById("adminBtn").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
+    document.getElementById("adminBtn").href = `https://wa.me/${ASK_ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
 
     function focusInput() {
       const el = document.getElementById("nameInput");
@@ -671,6 +727,7 @@
       ordersData = [];
       document.getElementById("nameInput").value = "";
       document.getElementById("emailInput").value = "";
+      document.getElementById("arrivedInput").value = "";
       document.getElementById("contentArea").innerHTML = `<div class="state-box">${TEXT[currentLang].welcome}</div>`;
     }
 
@@ -682,6 +739,7 @@
       const t = TEXT[lang];
       document.getElementById("nameInput").placeholder = t.namePlaceholder;
       document.getElementById("emailInput").placeholder = t.emailPlaceholder;
+      document.getElementById("arrivedInput").placeholder = t.arrivedPlaceholder;
       document.getElementById("checkBtn").textContent = t.check;
       document.getElementById("adminLabel").textContent = t.admin;
 
@@ -760,12 +818,53 @@
       return "b-other";
     }
 
-    function matchesNameAndEmail(row, nameQ, emailQ) {
+    function normalizeCoFlag(val) {
+      const raw = String(val || "").trim();
+      if (!raw) return { label: "-", cls: "co-none" };
+      const low = raw.toLowerCase();
+      if (low === "yes" || low === "y" || low === "sudah" || low === "ya" || low === "true" || low === "done") {
+        return { label: raw.toUpperCase(), cls: "co-yes" };
+      }
+      if (low === "no" || low === "n" || low === "belum" || low === "false") {
+        return { label: raw.toUpperCase(), cls: "co-no" };
+      }
+      return { label: raw, cls: "co-none" };
+    }
+
+    function normalizeDateText(val) {
+      return String(val || "")
+        .toLowerCase()
+        .replace(/\b(arrived|tgl|tanggal|ina|batch)\b/g, " ")
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function matchesQuery(row, nameQ, emailQ, arrivedQ) {
       const nNeedle = nameQ.toLowerCase();
       const eNeedle = emailQ.toLowerCase();
+      const aNeedle = normalizeDateText(arrivedQ);
+
       const nameVal = String(pickField(row, ["Nama Depan", "namaDepan", "nama", "name"], "")).trim().toLowerCase();
       const emailVal = String(pickField(row, ["Email", "email", "mail"], "")).trim().toLowerCase();
-      return nameVal.includes(nNeedle) && emailVal === eNeedle;
+      const arrivedFieldVal = pickField(row, [
+        "Tgl Arrived", "tglArrived", "tgl_arrived",
+        "Tanggal Arrived", "tanggalArrived", "tanggal_arrived",
+        "Info Arrived", "infoArrived", "info_arrived",
+        "Note Arrived", "noteArrived", "note_arrived",
+        "Arrived", "arrived", "Batch", "batch", "Variasi CO", "variasiCo"
+      ], "");
+      const arrivedNorm = normalizeDateText(arrivedFieldVal);
+
+      if (aNeedle && !nNeedle && !eNeedle) {
+        return arrivedNorm.includes(aNeedle);
+      }
+
+      const nameOk = !nNeedle || nameVal.includes(nNeedle);
+      const emailOk = !eNeedle || emailVal === eNeedle;
+      const arrivedOk = !aNeedle || arrivedNorm.includes(aNeedle);
+
+      return nameOk && emailOk && arrivedOk;
     }
 
     function sanitizeUrl(url) {
@@ -779,11 +878,15 @@
       const t = TEXT[currentLang];
       const nameQ = document.getElementById("nameInput").value.trim();
       const emailQ = document.getElementById("emailInput").value.trim();
+      const arrivedQ = document.getElementById("arrivedInput").value.trim();
       const area = document.getElementById("contentArea");
       const btn = document.getElementById("checkBtn");
 
-      if (!nameQ || !emailQ) {
-        area.innerHTML = `<div class="state-box">${t.missingBoth}</div>`;
+      const hasBuyerPair = Boolean(nameQ && emailQ);
+      const hasArrivedFilter = Boolean(arrivedQ);
+
+      if (!hasBuyerPair && !hasArrivedFilter) {
+        area.innerHTML = `<div class="state-box">${t.missingQuery}</div>`;
         return;
       }
 
@@ -800,8 +903,14 @@
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
         const rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
-        lastQueryLabel = `"${nameQ}" & "${emailQ}"`;
-        ordersData = rows.filter(r => matchesNameAndEmail(r, nameQ, emailQ));
+
+        const parts = [];
+        if (nameQ) parts.push(`"${nameQ}"`);
+        if (emailQ) parts.push(`"${emailQ}"`);
+        if (arrivedQ) parts.push(`Tgl Arrived "${arrivedQ}"`);
+        lastQueryLabel = parts.join(" & ");
+
+        ordersData = rows.filter(r => matchesQuery(r, nameQ, emailQ, arrivedQ));
         renderOrders();
       } catch (err) {
         area.innerHTML = `<div class="state-box">${t.fetchErr}</div>`;
@@ -843,6 +952,8 @@
         const brg = pickField(item, ["Item", "item", "barang"], "-");
         const qty = pickField(item, ["Jumlah (QTY)", "jumlahQty", "qty", "jumlah"], "-");
         const status = pickField(item, ["Status", "status"], "-");
+        const coRaw = pickField(item, ["Yes/No", "yes/no", "Yes No", "yesNo", "CO", "co", "Status CO", "statusCo", "Sudah CO", "sudahCo", "CO Shopee", "coShopee"], "");
+        const coBadge = normalizeCoFlag(coRaw);
         const paid = parseNum(pickField(item, ["DP", "dp", "sudahBayar", "paid"], 0));
         const total = parseNum(pickField(item, ["Total", "total"], 0));
         const rawDue = pickField(item, ["Pelunasan", "pelunasan", "balance"], null);
@@ -861,7 +972,7 @@
           }
           if (due > 0) {
             arrivedDueTotal += due;
-            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) -> Pelunasan: ${formatIDR(due)}`);
+            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) [CO: ${coBadge.label}] -> Pelunasan: ${formatIDR(due)}`);
           }
         }
 
@@ -875,6 +986,7 @@
             <td class="col-item">${brg}</td>
             <td class="col-qty">${qty}</td>
             <td><span class="badge ${badgeCls}">${status}</span></td>
+            <td class="col-co"><span class="badge ${coBadge.cls}">${coBadge.label}</span></td>
             <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
             <td class="num">${formatIDR(paid)}</td>
             <td class="num ${dueClass}">${formatIDR(due)}</td>
@@ -894,7 +1006,7 @@
         ...(singleShopeeLink ? [`Link Shopee: ${singleShopeeLink}`] : []),
         `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`
       ];
-      const waHref = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
+      const waHref = `https://wa.me/${CONFIRM_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
 
       const hasCoInfo = arrivedCount > 0 && (singleShopeeLink || singleVariasiCo);
       const coBoxHtml = hasCoInfo ? `
@@ -924,6 +1036,15 @@
         </div>
       ` : "";
 
+      const tncHtml = `
+        <div class="tnc-box">
+          <div class="tnc-title">${t.tncTitle}</div>
+          <ul class="tnc-list">
+            ${t.tncItems.map(line => `<li>${line}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+
       area.innerHTML = `
         <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
         <div class="summary-grid">
@@ -946,6 +1067,7 @@
                 <th>${t.thItem}</th>
                 <th style="text-align:center;">${t.thQty}</th>
                 <th>${t.thStatus}</th>
+                <th style="text-align:center;">${t.thCo}</th>
                 <th class="num">${t.thTotal}</th>
                 <th class="num">${t.thPaid}</th>
                 <th class="num">${t.thDue}</th>
@@ -983,6 +1105,7 @@
               <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.seabank.account}', this, '${t.copy}')">${t.copy}</button>
             </div>
           </div>
+          ${tncHtml}
           <a class="confirm-wa-btn" href="${waHref}" target="_blank" rel="noopener">
             <span>💬</span> <span>${t.confirmWa(formattedArrivedDue)}</span>
           </a>
