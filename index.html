@@ -485,6 +485,100 @@
       white-space: nowrap;
     }
 
+    .qris-box {
+      border: 1px solid var(--border);
+      background: #F9FBFF;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .qris-info {
+      flex: 1 1 200px;
+    }
+
+    .qris-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--blue-dark);
+    }
+
+    .qris-desc {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.45;
+    }
+
+    .qris-thumb-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qris-thumb {
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+      background: #FFFFFF;
+      border: 1px solid var(--blue-border);
+      border-radius: 8px;
+      padding: 4px;
+      cursor: zoom-in;
+    }
+
+    .qris-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .qris-modal.open {
+      display: flex;
+    }
+
+    .qris-modal-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 16px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .qris-modal-img {
+      width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .qris-close-btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--blue-main);
+      color: #FFFFFF;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
     .tnc-box {
       background: #F9FBFF;
       border: 1px dashed var(--blue-border);
@@ -599,12 +693,20 @@
     </div>
   </main>
 
+  <div class="qris-modal" id="qrisModal" onclick="closeQrisModal(event)">
+    <div class="qris-modal-card" onclick="event.stopPropagation()">
+      <img class="qris-modal-img" id="qrisModalImg" src="./ID1021081861168%202.jpeg" alt="Barcode QRIS" />
+      <button type="button" class="qris-close-btn" id="qrisCloseBtn" onclick="closeQrisModal()">Tutup</button>
+    </div>
+  </div>
+
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
     const ASK_ADMIN_WA = "6285810117201";
     const CONFIRM_WA = "6285781683952";
     const BRAND_NAME = "ByCimo";
     const IG_URL = "https://www.instagram.com/bycimo/";
+    const QRIS_IMAGE_URL = "./ID1021081861168%202.jpeg";
 
     const PAYMENT_INFO = {
       bca: {
@@ -646,7 +748,7 @@
         sumDueArrivedOnly: (amt) => `Khusus ARRIVED INA: ${amt}`,
         sumTotal: "Total Nominal",
         payArrivedLabel: "Nominal Pelunasan (Khusus ARRIVED INA)",
-        scrollHint: "Geser tabel ke kanan untuk melihat CO, Total, DP, dan Pelunasan →",
+        scrollHint: "Geser tabel ke kanan untuk melihat Total, DP, Pelunasan, dan DONE CO →",
         coTitle: "🛒 Info Checkout Shopee Pelunasan (ARRIVED INA)",
         coLinkLabel: "Link Shopee (1x CO)",
         coVarLabel: "Variasi CO",
@@ -654,7 +756,11 @@
         copyLink: "Salin Link",
         payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
         qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
-        copy: "Salin No. Rek",
+        qrisLabel: "Barcode QRIS",
+        qrisDesc: "Klik gambar barcode untuk memperbesar. Sertakan bukti transfer saat mengirim konfirmasi ke WA.",
+        qrisZoom: "Perbesar",
+        qrisClose: "Tutup",
+        copy: "Salin",
         copied: "Tersalin",
         tncTitle: "TnC Pelunasan",
         tncItems: [
@@ -692,7 +798,7 @@
         sumDueArrivedOnly: (amt) => `ARRIVED INA Only: ${amt}`,
         sumTotal: "Total Amount",
         payArrivedLabel: "Payment Due (ARRIVED INA Only)",
-        scrollHint: "Scroll table right to see CO, Total, DP, and Balance →",
+        scrollHint: "Scroll table right to see Total, DP, Balance, and DONE CO →",
         coTitle: "🛒 Shopee Checkout Info (ARRIVED INA)",
         coLinkLabel: "Shopee Link (Single CO)",
         coVarLabel: "CO Variation",
@@ -700,7 +806,11 @@
         copyLink: "Copy Link",
         payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
         qrisNote: "QRIS > Rp 100.000 requires +0.3%",
-        copy: "Copy Acc No.",
+        qrisLabel: "QRIS Barcode",
+        qrisDesc: "Tap barcode to zoom. Attach your transfer proof when sending WA confirmation.",
+        qrisZoom: "Zoom",
+        qrisClose: "Close",
+        copy: "Copy",
         copied: "Copied",
         tncTitle: "Payment TnC",
         tncItems: [
@@ -724,10 +834,38 @@
     document.getElementById("igBtn").href = IG_URL;
     document.getElementById("adminBtn").href = `https://wa.me/${ASK_ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
 
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function escapeAttr(str) {
+      return String(str || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;")
+        .replace(/\r?\n/g, " ");
+    }
+
     function focusInput() {
       const el = document.getElementById("nameInput");
       el.focus();
       el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function openQrisModal() {
+      const cleanUrl = sanitizeImageUrl(QRIS_IMAGE_URL);
+      if (!cleanUrl) return;
+      document.getElementById("qrisModalImg").src = cleanUrl;
+      document.getElementById("qrisModal").classList.add("open");
+    }
+
+    function closeQrisModal(e) {
+      if (e && e.target !== document.getElementById("qrisModal") && e.target !== document.getElementById("qrisCloseBtn")) return;
+      document.getElementById("qrisModal").classList.remove("open");
     }
 
     function resetView(e) {
@@ -751,6 +889,7 @@
       document.getElementById("arrivedInput").placeholder = t.arrivedPlaceholder;
       document.getElementById("checkBtn").textContent = t.check;
       document.getElementById("adminLabel").textContent = t.admin;
+      document.getElementById("qrisCloseBtn").textContent = t.qrisClose;
 
       const sel = document.getElementById("statusFilter");
       sel.options[0].text = t.notDone;
@@ -766,13 +905,38 @@
 
     function copyText(val, btnEl, fallbackLabel) {
       const t = TEXT[currentLang];
-      navigator.clipboard.writeText(val).then(() => {
+      const textToCopy = String(val || "");
+      if (!textToCopy) return;
+
+      const onCopied = () => {
         const prev = btnEl.textContent;
         btnEl.textContent = t.copied;
         setTimeout(() => {
           btnEl.textContent = fallbackLabel || prev || t.copy;
         }, 1500);
-      });
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(onCopied).catch(() => {
+          fallbackCopy(textToCopy, onCopied);
+        });
+      } else {
+        fallbackCopy(textToCopy, onCopied);
+      }
+    }
+
+    function fallbackCopy(text, cb) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        cb();
+      } catch (e) {}
+      document.body.removeChild(ta);
     }
 
     function parseNum(val) {
@@ -887,16 +1051,25 @@
       return nameOk && emailOk && arrivedOk;
     }
 
-    function sanitizeUrl(url) {
+    function sanitizeExternalUrl(url) {
+      const raw = String(url || "").trim().replace(/\s+/g, "");
+      if (!raw) return "";
+      if (/^(javascript|data|vbscript|file):/i.test(raw)) return "";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      if (/^\/\//.test(raw)) return "https:" + raw;
+      return "https://" + raw.replace(/^\/+/, "");
+    }
+
+    function sanitizeImageUrl(url) {
       const raw = String(url || "").trim();
       if (!raw) return "";
-      if (/^https?:\/\//i.test(raw)) return raw;
-      return "https://" + raw;
+      if (/^(javascript|data|vbscript):/i.test(raw)) return "";
+      return raw.replace(/ /g, "%20");
     }
 
     function renderNotFoundBox(t) {
       const info = totalFetchedRows > 0
-        ? `<div class="debug-note">Total baris terbaca dari API: <b>${totalFetchedRows}</b> · Kolom: <code>${sampleKeys || "-"}</code></div>`
+        ? `<div class="debug-note">Total baris terbaca dari API: <b>${totalFetchedRows}</b> · Kolom: <code>${escapeHtml(sampleKeys || "-")}</code></div>`
         : "";
       return `<div class="state-box">${t.notFound}${info}</div>`;
     }
@@ -991,7 +1164,7 @@
         if (isArrivedIna(status)) {
           arrivedCount += 1;
           if (!singleShopeeLink) {
-            singleShopeeLink = sanitizeUrl(pickField(item, ["Link Shopee", "linkShopee", "link_shopee", "shopeeLink", "link"], ""));
+            singleShopeeLink = sanitizeExternalUrl(pickField(item, ["Link Shopee", "linkShopee", "link_shopee", "shopeeLink", "link"], ""));
           }
           if (!singleVariasiCo) {
             singleVariasiCo = String(pickField(item, ["Variasi CO", "variasiCo", "variasi_co", "variasi", "variation"], "")).trim();
@@ -1007,15 +1180,15 @@
 
         return `
           <tr>
-            <td class="col-name">${nama}</td>
-            <td class="col-batch">${batch}</td>
-            <td class="col-item">${brg}</td>
-            <td class="col-qty">${qty}</td>
-            <td><span class="badge ${badgeCls}">${status}</span></td>
-            <td class="col-co"><span class="badge ${coBadge.cls}">${coBadge.label}</span></td>
+            <td class="col-name">${escapeHtml(nama)}</td>
+            <td class="col-batch">${escapeHtml(batch)}</td>
+            <td class="col-item">${escapeHtml(brg)}</td>
+            <td class="col-qty">${escapeHtml(qty)}</td>
+            <td><span class="badge ${badgeCls}">${escapeHtml(status)}</span></td>
             <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
             <td class="num">${formatIDR(paid)}</td>
             <td class="num ${dueClass}">${formatIDR(due)}</td>
+            <td class="col-co"><span class="badge ${coBadge.cls}">${escapeHtml(coBadge.label)}</span></td>
           </tr>
         `;
       }).join("");
@@ -1030,7 +1203,8 @@
         ...(arrivedItemsSummary.length > 0 ? arrivedItemsSummary : ["- Tidak ada item ARRIVED INA dengan sisa pelunasan"]),
         ...(singleVariasiCo ? [`Variasi CO: ${singleVariasiCo}`] : []),
         ...(singleShopeeLink ? [`Link Shopee: ${singleShopeeLink}`] : []),
-        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`
+        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`,
+        `Bukti Transfer: *(sertakan bukti transfer pada chat WA ini ya min)*`
       ];
       const waHref = `https://wa.me/${CONFIRM_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
 
@@ -1042,23 +1216,36 @@
             <div class="co-row">
               <div>
                 <div class="co-label">${t.coVarLabel}</div>
-                <div class="co-val">${singleVariasiCo}</div>
+                <div class="co-val">${escapeHtml(singleVariasiCo)}</div>
               </div>
-              <button type="button" class="copy-btn" onclick="copyText('${singleVariasiCo.replace(/'/g, "\\'")}', this, '${t.copy}')">${t.copy}</button>
             </div>
           ` : ""}
           ${singleShopeeLink ? `
             <div class="co-row">
               <div>
                 <div class="co-label">${t.coLinkLabel}</div>
-                <div class="co-val">${singleShopeeLink}</div>
+                <div class="co-val">${escapeHtml(singleShopeeLink)}</div>
               </div>
               <div class="co-actions">
-                <a class="co-link-btn" href="${singleShopeeLink}" target="_blank" rel="noopener">${t.openLink}</a>
-                <button type="button" class="copy-btn" onclick="copyText('${singleShopeeLink.replace(/'/g, "\\'")}', this, '${t.copyLink}')">${t.copyLink}</button>
+                <a class="co-link-btn" href="${escapeHtml(singleShopeeLink)}" target="_blank" rel="noopener noreferrer">${t.openLink}</a>
+                <button type="button" class="copy-btn" onclick="copyText('${escapeAttr(singleShopeeLink)}', this, '${escapeAttr(t.copyLink)}')">${t.copyLink}</button>
               </div>
             </div>
           ` : ""}
+        </div>
+      ` : "";
+
+      const cleanQrisUrl = sanitizeImageUrl(QRIS_IMAGE_URL);
+      const qrisBoxHtml = cleanQrisUrl ? `
+        <div class="qris-box">
+          <div class="qris-info">
+            <div class="qris-label">${t.qrisLabel}</div>
+            <div class="qris-desc">${t.qrisDesc}</div>
+          </div>
+          <div class="qris-thumb-wrap">
+            <img class="qris-thumb" src="${escapeHtml(cleanQrisUrl)}" alt="QRIS ${escapeHtml(BRAND_NAME)}" onclick="openQrisModal()" />
+            <button type="button" class="copy-btn" onclick="openQrisModal()">${t.qrisZoom}</button>
+          </div>
         </div>
       ` : "";
 
@@ -1072,7 +1259,7 @@
       `;
 
       area.innerHTML = `
-        <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
+        <div class="meta-line">${t.showing(filtered.length, ordersData.length, escapeHtml(lastQueryLabel))}</div>
         <div class="summary-grid">
           <div class="summary-card">
             <span>${t.sumDueAll}</span>
@@ -1093,10 +1280,10 @@
                 <th>${t.thItem}</th>
                 <th style="text-align:center;">${t.thQty}</th>
                 <th>${t.thStatus}</th>
-                <th style="text-align:center;">${t.thCo}</th>
                 <th class="num">${t.thTotal}</th>
                 <th class="num">${t.thPaid}</th>
                 <th class="num">${t.thDue}</th>
+                <th style="text-align:center;">${t.thCo}</th>
               </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
@@ -1120,7 +1307,7 @@
                 <div class="bank-acc">${PAYMENT_INFO.bca.account}</div>
                 <div class="bank-holder">${PAYMENT_INFO.bca.holder}</div>
               </div>
-              <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.bca.account}', this, '${t.copy}')">${t.copy}</button>
+              <button type="button" class="copy-btn" onclick="copyText('${escapeAttr(PAYMENT_INFO.bca.account)}', this, '${escapeAttr(t.copy)}')">${t.copy}</button>
             </div>
             <div class="bank-box">
               <div>
@@ -1128,11 +1315,12 @@
                 <div class="bank-acc">${PAYMENT_INFO.seabank.account}</div>
                 <div class="bank-holder">${PAYMENT_INFO.seabank.holder}</div>
               </div>
-              <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.seabank.account}', this, '${t.copy}')">${t.copy}</button>
+              <button type="button" class="copy-btn" onclick="copyText('${escapeAttr(PAYMENT_INFO.seabank.account)}', this, '${escapeAttr(t.copy)}')">${t.copy}</button>
             </div>
           </div>
+          ${qrisBoxHtml}
           ${tncHtml}
-          <a class="confirm-wa-btn" href="${waHref}" target="_blank" rel="noopener">
+          <a class="confirm-wa-btn" href="${escapeHtml(waHref)}" target="_blank" rel="noopener noreferrer">
             <span>💬</span> <span>${t.confirmWa(formattedArrivedDue)}</span>
           </a>
         </div>
