@@ -503,12 +503,25 @@
       flex: 1 1 200px;
     }
 
+    .qris-header-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .qris-label {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.4px;
       color: var(--blue-dark);
+    }
+
+    .qris-fee-bold {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ink);
     }
 
     .qris-desc {
@@ -757,7 +770,8 @@
         copyLink: "Salin Link",
         payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
         qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
-        qrisLabel: "Barcode QRIS",
+        qrisLabel: "BARCODE QRIS",
+        qrisFeeBold: "QRIS tambah 0.3% apabila nominal diatas 100k",
         qrisDesc: "Klik gambar barcode untuk memperbesar.",
         qrisZoom: "Perbesar",
         qrisClose: "Tutup",
@@ -766,8 +780,8 @@
         tncTitle: "TnC Pelunasan",
         tncItems: [
           "Saat CO SHOPEE cukup tulis nama + Tanggal ARRIVED sesuai orderan",
-          "Sertakan bukti transfer saat konfirmasi ke WA",
-          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~"
+          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~",
+          "Sertakan bukti transfer saat konfirmasi ke WA"
         ],
         confirmWa: (amt) => `Konfirmasi Pelunasan ke Admin (${amt})`,
         thName: "NAMA",
@@ -810,7 +824,8 @@
         copyLink: "Copy Link",
         payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
         qrisNote: "QRIS > Rp 100.000 requires +0.3%",
-        qrisLabel: "QRIS Barcode",
+        qrisLabel: "BARCODE QRIS",
+        qrisFeeBold: "QRIS tambah 0.3% apabila nominal diatas 100k",
         qrisDesc: "Tap barcode to zoom.",
         qrisZoom: "Zoom",
         qrisClose: "Close",
@@ -819,8 +834,8 @@
         tncTitle: "Payment TnC",
         tncItems: [
           "Saat CO SHOPEE cukup tulis nama + Tanggal ARRIVED sesuai orderan",
-          "Sertakan bukti transfer saat konfirmasi ke WA",
-          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~"
+          "Jangan lupa untuk klik konfirm pc ke ADMIN WA TOMBOL HIJAU apabila sudah melakukan pembayaran manual ke BCA/SEABANK/QRIS, kirim format wa otomatisnya~",
+          "Sertakan bukti transfer saat konfirmasi ke WA"
         ],
         confirmWa: (amt) => `Confirm Payment to Admin (${amt})`,
         thName: "NAME",
@@ -1244,7 +1259,10 @@
       const qrisBoxHtml = cleanQrisUrl ? `
         <div class="qris-box">
           <div class="qris-info">
-            <div class="qris-label">${t.qrisLabel}</div>
+            <div class="qris-header-line">
+              <span class="qris-label">${t.qrisLabel}</span>
+              <strong class="qris-fee-bold">${escapeHtml(t.qrisFeeBold)}</strong>
+            </div>
             <div class="qris-desc">${t.qrisDesc}</div>
           </div>
           <div class="qris-thumb-wrap">
