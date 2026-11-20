@@ -552,7 +552,6 @@
   </main>
 
   <script>
-    // === KONFIGURASI UTAMA ===
     const API_URL = "https://script.google.com/macros/s/AKfycbxnZPgxaTI94h3RvHZi2aoslUrQaxz2pytbM5Kv66rT1EzGi8-xALyQbVABpWSt9cOOKQ/exec";
     const ADMIN_WA = "6285810117201";
     const BRAND_NAME = "ByCimo";
@@ -570,7 +569,6 @@
         holder: "a/n Nadifa Aulia"
       }
     };
-    // =========================
 
     let currentLang = "id";
     let ordersData = [];
@@ -585,4 +583,412 @@
         admin: "Ask Admin",
         notDone: "Status: Not Done",
         all: "Status: All",
-        done: "Status: Done
+        done: "Status: Done",
+        welcome: 'Masukkan <b>Nama</b> dan <b>Email</b> pembeli lalu tekan <b>Cek Order</b> untuk melihat status barang dan pelunasan.',
+        missingBoth: "Masukkan Nama dan Email pembeli terlebih dahulu.",
+        missingApi: "URL Google Apps Script (<code>API_URL</code>) belum diisi pada file <code>index.html</code>.",
+        fetchErr: "Gagal mengambil data dari Google Sheets. Pastikan Web App sudah di-deploy dengan akses <b>Anyone</b> dan pakai URL berakhiran <b>/exec</b>.",
+        notFound: "Data order tidak ditemukan untuk kombinasi nama, email, atau filter tersebut.",
+        showing: (a, b, q) => `Menampilkan ${a} dari ${b} order untuk ${q}`,
+        sumDueAll: "Total Sisa Pelunasan (Semua Status)",
+        sumDueArrivedOnly: (amt) => `Khusus ARRIVED INA: ${amt}`,
+        sumTotal: "Total Nominal",
+        payArrivedLabel: "Nominal Pelunasan (Khusus ARRIVED INA)",
+        scrollHint: "Geser tabel ke kanan untuk melihat Qty, Total, DP, dan Pelunasan →",
+        coTitle: "🛒 Info Checkout Shopee Pelunasan (ARRIVED INA)",
+        coLinkLabel: "Link Shopee (1x CO)",
+        coVarLabel: "Variasi CO",
+        openLink: "Buka Link",
+        copyLink: "Salin Link",
+        payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
+        qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
+        copy: "Salin No. Rek",
+        copied: "Tersalin",
+        confirmWa: (amt) => `Konfirmasi Pelunasan ke Admin (${amt})`,
+        thName: "NAMA",
+        thBatch: "BATCH",
+        thItem: "ITEM",
+        thQty: "QTY",
+        thStatus: "STATUS",
+        thTotal: "TOTAL",
+        thPaid: "DP",
+        thDue: "PELUNASAN"
+      },
+      en: {
+        namePlaceholder: "Buyer name...",
+        emailPlaceholder: "Buyer email...",
+        check: "Check Order",
+        loading: "Searching...",
+        admin: "Ask Admin",
+        notDone: "Status: Not Done",
+        all: "Status: All",
+        done: "Status: Done",
+        welcome: 'Enter both buyer <b>Name</b> and <b>Email</b> and tap <b>Check Order</b> to view item status and balance.',
+        missingBoth: "Please enter both buyer Name and Email.",
+        missingApi: "Google Apps Script URL (<code>API_URL</code>) is not set in <code>index.html</code>.",
+        fetchErr: "Failed to load data from Google Sheets. Make sure Web App is deployed as <b>Anyone</b> and uses the <b>/exec</b> URL.",
+        notFound: "No orders found for this name, email, or filter.",
+        showing: (a, b, q) => `Showing ${a} of ${b} orders for ${q}`,
+        sumDueAll: "Total Remaining Balance (All Status)",
+        sumDueArrivedOnly: (amt) => `ARRIVED INA Only: ${amt}`,
+        sumTotal: "Total Amount",
+        payArrivedLabel: "Payment Due (ARRIVED INA Only)",
+        scrollHint: "Scroll table right to see Qty, Total, DP, and Balance →",
+        coTitle: "🛒 Shopee Checkout Info (ARRIVED INA)",
+        coLinkLabel: "Shopee Link (Single CO)",
+        coVarLabel: "CO Variation",
+        openLink: "Open Link",
+        copyLink: "Copy Link",
+        payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
+        qrisNote: "QRIS > Rp 100.000 requires +0.3%",
+        copy: "Copy Acc No.",
+        copied: "Copied",
+        confirmWa: (amt) => `Confirm Payment to Admin (${amt})`,
+        thName: "NAME",
+        thBatch: "BATCH",
+        thItem: "ITEM",
+        thQty: "QTY",
+        thStatus: "STATUS",
+        thTotal: "TOTAL",
+        thPaid: "DP",
+        thDue: "BALANCE"
+      }
+    };
+
+    document.getElementById("brandPill").textContent = BRAND_NAME;
+    document.getElementById("igBtn").href = IG_URL;
+    document.getElementById("adminBtn").href = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent("Halo min, mau tanya soal orderanku")}`;
+
+    function focusInput() {
+      const el = document.getElementById("nameInput");
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function resetView(e) {
+      if (e) e.preventDefault();
+      lastQueryLabel = "";
+      ordersData = [];
+      document.getElementById("nameInput").value = "";
+      document.getElementById("emailInput").value = "";
+      document.getElementById("contentArea").innerHTML = `<div class="state-box">${TEXT[currentLang].welcome}</div>`;
+    }
+
+    function changeLang(lang) {
+      currentLang = lang;
+      document.getElementById("langID").classList.toggle("active", lang === "id");
+      document.getElementById("langEN").classList.toggle("active", lang === "en");
+
+      const t = TEXT[lang];
+      document.getElementById("nameInput").placeholder = t.namePlaceholder;
+      document.getElementById("emailInput").placeholder = t.emailPlaceholder;
+      document.getElementById("checkBtn").textContent = t.check;
+      document.getElementById("adminLabel").textContent = t.admin;
+
+      const sel = document.getElementById("statusFilter");
+      sel.options[0].text = t.notDone;
+      sel.options[1].text = t.all;
+      sel.options[2].text = t.done;
+
+      if (lastQueryLabel) {
+        renderOrders();
+      } else {
+        document.getElementById("contentArea").innerHTML = `<div class="state-box">${t.welcome}</div>`;
+      }
+    }
+
+    function copyText(val, btnEl, fallbackLabel) {
+      const t = TEXT[currentLang];
+      navigator.clipboard.writeText(val).then(() => {
+        const prev = btnEl.textContent;
+        btnEl.textContent = t.copied;
+        setTimeout(() => {
+          btnEl.textContent = fallbackLabel || prev || t.copy;
+        }, 1500);
+      });
+    }
+
+    function parseNum(val) {
+      if (typeof val === "number") return isNaN(val) ? 0 : val;
+      const cleaned = String(val || "0")
+        .replace(/rp/gi, "")
+        .replace(/\s+/g, "")
+        .replace(/,/g, "")
+        .trim();
+      if (!cleaned) return 0;
+      const n = Number(cleaned);
+      if (!isNaN(n)) return n;
+      const dotCleaned = cleaned.replace(/\./g, "");
+      const n2 = Number(dotCleaned);
+      return isNaN(n2) ? 0 : n2;
+    }
+
+    function formatIDR(val) {
+      const num = parseNum(val);
+      const prefix = num < 0 ? "-Rp " : "Rp ";
+      return prefix + Math.abs(num).toLocaleString("id-ID");
+    }
+
+    function pickField(row, keys, fallback = "") {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "") {
+          return row[k];
+        }
+      }
+      const lowerMap = {};
+      Object.keys(row || {}).forEach(origKey => {
+        lowerMap[origKey.toLowerCase().replace(/[^a-z0-9]/g, "")] = row[origKey];
+      });
+      for (const k of keys) {
+        const norm = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (lowerMap[norm] !== undefined && lowerMap[norm] !== null && String(lowerMap[norm]).trim() !== "") {
+          return lowerMap[norm];
+        }
+      }
+      return fallback;
+    }
+
+    function isArrivedIna(status) {
+      const s = String(status || "").trim().toLowerCase().replace(/\s+/g, " ");
+      return s === "arrived ina" || s.includes("arrived ina") || s === "arrived_ina" || s === "arrivedina";
+    }
+
+    function statusBadgeClass(status) {
+      const s = String(status || "").toLowerCase();
+      if (isArrivedIna(s) || s.includes("arriv") || s.includes("indo") || s.includes("ready")) return "b-arrive";
+      if (s.includes("otw") || s.includes("ship") || s.includes("flight") || s.includes("sea") || s.includes("wh")) return "b-otw";
+      return "b-other";
+    }
+
+    function matchesNameAndEmail(row, nameQ, emailQ) {
+      const nNeedle = nameQ.toLowerCase();
+      const eNeedle = emailQ.toLowerCase();
+      const nameVal = String(pickField(row, ["Nama Depan", "namaDepan", "nama", "name"], "")).trim().toLowerCase();
+      const emailVal = String(pickField(row, ["Email", "email", "mail"], "")).trim().toLowerCase();
+      return nameVal.includes(nNeedle) && emailVal === eNeedle;
+    }
+
+    function sanitizeUrl(url) {
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      return "https://" + raw;
+    }
+
+    async function searchOrders() {
+      const t = TEXT[currentLang];
+      const nameQ = document.getElementById("nameInput").value.trim();
+      const emailQ = document.getElementById("emailInput").value.trim();
+      const area = document.getElementById("contentArea");
+      const btn = document.getElementById("checkBtn");
+
+      if (!nameQ || !emailQ) {
+        area.innerHTML = `<div class="state-box">${t.missingBoth}</div>`;
+        return;
+      }
+
+      if (!API_URL || API_URL.includes("PASTE_URL_WEB_APP_KAMU_DI_SINI")) {
+        area.innerHTML = `<div class="state-box">${t.missingApi}</div>`;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = t.loading;
+
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+        lastQueryLabel = `"${nameQ}" & "${emailQ}"`;
+        ordersData = rows.filter(r => matchesNameAndEmail(r, nameQ, emailQ));
+        renderOrders();
+      } catch (err) {
+        area.innerHTML = `<div class="state-box">${t.fetchErr}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = TEXT[currentLang].check;
+      }
+    }
+
+    function renderOrders() {
+      const t = TEXT[currentLang];
+      const area = document.getElementById("contentArea");
+      const filter = document.getElementById("statusFilter").value;
+
+      const filtered = ordersData.filter(item => {
+        const doneFlag = String(pickField(item, ["DONE", "done", "statusDone"], "")).trim().toLowerCase();
+        const isDone = doneFlag === "yes" || doneFlag === "done" || doneFlag === "true" || doneFlag === "lunas";
+        if (filter === "not_done") return !isDone;
+        if (filter === "done") return isDone;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        area.innerHTML = `<div class="state-box">${t.notFound}</div>`;
+        return;
+      }
+
+      let totalDueAll = 0;
+      let arrivedDueTotal = 0;
+      let totalAmt = 0;
+      let arrivedCount = 0;
+      let singleShopeeLink = "";
+      let singleVariasiCo = "";
+      const arrivedItemsSummary = [];
+
+      const rowsHtml = filtered.map(item => {
+        const nama = pickField(item, ["Nama Depan", "namaDepan", "nama", "name"], "-");
+        const batch = pickField(item, ["Batch", "batch"], "-");
+        const brg = pickField(item, ["Item", "item", "barang"], "-");
+        const qty = pickField(item, ["Jumlah (QTY)", "jumlahQty", "qty", "jumlah"], "-");
+        const status = pickField(item, ["Status", "status"], "-");
+        const paid = parseNum(pickField(item, ["DP", "dp", "sudahBayar", "paid"], 0));
+        const total = parseNum(pickField(item, ["Total", "total"], 0));
+        const rawDue = pickField(item, ["Pelunasan", "pelunasan", "balance"], null);
+        const due = rawDue !== null ? parseNum(rawDue) : (total - paid);
+
+        totalAmt += total;
+        totalDueAll += due;
+
+        if (isArrivedIna(status)) {
+          arrivedCount += 1;
+          if (!singleShopeeLink) {
+            singleShopeeLink = sanitizeUrl(pickField(item, ["Link Shopee", "linkShopee", "link_shopee", "shopeeLink", "link"], ""));
+          }
+          if (!singleVariasiCo) {
+            singleVariasiCo = String(pickField(item, ["Variasi CO", "variasiCo", "variasi_co", "variasi", "variation"], "")).trim();
+          }
+          if (due > 0) {
+            arrivedDueTotal += due;
+            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) -> Pelunasan: ${formatIDR(due)}`);
+          }
+        }
+
+        const dueClass = due < 0 ? "neg" : (due === 0 ? "done-ok" : "");
+        const badgeCls = statusBadgeClass(status);
+
+        return `
+          <tr>
+            <td class="col-name">${nama}</td>
+            <td class="col-batch">${batch}</td>
+            <td class="col-item">${brg}</td>
+            <td class="col-qty">${qty}</td>
+            <td><span class="badge ${badgeCls}">${status}</span></td>
+            <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
+            <td class="num">${formatIDR(paid)}</td>
+            <td class="num ${dueClass}">${formatIDR(due)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const formattedTotalDueAll = formatIDR(totalDueAll);
+      const formattedArrivedDue = formatIDR(arrivedDueTotal);
+      const buyerNameDisplay = pickField(filtered[0], ["Nama Depan", "namaDepan", "nama", "name"], lastQueryLabel);
+
+      const waMsgLines = [
+        `Halo min ${BRAND_NAME}, mau konfirmasi pelunasan order (khusus ARRIVED INA):`,
+        `Nama: ${buyerNameDisplay}`,
+        ...(arrivedItemsSummary.length > 0 ? arrivedItemsSummary : ["- Tidak ada item ARRIVED INA dengan sisa pelunasan"]),
+        ...(singleVariasiCo ? [`Variasi CO: ${singleVariasiCo}`] : []),
+        ...(singleShopeeLink ? [`Link Shopee: ${singleShopeeLink}`] : []),
+        `Total Pelunasan (ARRIVED INA): ${formattedArrivedDue}`
+      ];
+      const waHref = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsgLines.join("\n"))}`;
+
+      const hasCoInfo = arrivedCount > 0 && (singleShopeeLink || singleVariasiCo);
+      const coBoxHtml = hasCoInfo ? `
+        <div class="co-box">
+          <div class="co-title">${t.coTitle}</div>
+          ${singleVariasiCo ? `
+            <div class="co-row">
+              <div>
+                <div class="co-label">${t.coVarLabel}</div>
+                <div class="co-val">${singleVariasiCo}</div>
+              </div>
+              <button type="button" class="copy-btn" onclick="copyText('${singleVariasiCo.replace(/'/g, "\\'")}', this, '${t.copy}')">${t.copy}</button>
+            </div>
+          ` : ""}
+          ${singleShopeeLink ? `
+            <div class="co-row">
+              <div>
+                <div class="co-label">${t.coLinkLabel}</div>
+                <div class="co-val">${singleShopeeLink}</div>
+              </div>
+              <div class="co-actions">
+                <a class="co-link-btn" href="${singleShopeeLink}" target="_blank" rel="noopener">${t.openLink}</a>
+                <button type="button" class="copy-btn" onclick="copyText('${singleShopeeLink.replace(/'/g, "\\'")}', this, '${t.copyLink}')">${t.copyLink}</button>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+      ` : "";
+
+      area.innerHTML = `
+        <div class="meta-line">${t.showing(filtered.length, ordersData.length, lastQueryLabel)}</div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span>${t.sumDueAll}</span>
+            <strong class="${totalDueAll < 0 ? "neg" : (totalDueAll === 0 ? "done-ok" : "")}">${formattedTotalDueAll}</strong>
+            <span class="summary-sub">${t.sumDueArrivedOnly(formattedArrivedDue)}</span>
+          </div>
+          <div class="summary-card">
+            <span>${t.sumTotal}</span>
+            <strong>${formatIDR(totalAmt)}</strong>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>${t.thName}</th>
+                <th>${t.thBatch}</th>
+                <th>${t.thItem}</th>
+                <th style="text-align:center;">${t.thQty}</th>
+                <th>${t.thStatus}</th>
+                <th class="num">${t.thTotal}</th>
+                <th class="num">${t.thPaid}</th>
+                <th class="num">${t.thDue}</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        <div class="scroll-hint">${t.scrollHint}</div>
+        ${coBoxHtml}
+        <div class="payment-card">
+          <div class="payment-head">
+            <div class="payment-title">${t.payTitle}</div>
+            <div class="qris-note">${t.qrisNote}</div>
+          </div>
+          <div class="payment-due-banner">
+            <span>${t.payArrivedLabel}</span>
+            <strong class="${arrivedDueTotal < 0 ? "neg" : (arrivedDueTotal === 0 ? "done-ok" : "")}">${formattedArrivedDue}</strong>
+          </div>
+          <div class="bank-grid">
+            <div class="bank-box">
+              <div>
+                <div class="bank-name">${PAYMENT_INFO.bca.label}</div>
+                <div class="bank-acc">${PAYMENT_INFO.bca.account}</div>
+                <div class="bank-holder">${PAYMENT_INFO.bca.holder}</div>
+              </div>
+              <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.bca.account}', this, '${t.copy}')">${t.copy}</button>
+            </div>
+            <div class="bank-box">
+              <div>
+                <div class="bank-name">${PAYMENT_INFO.seabank.label}</div>
+                <div class="bank-acc">${PAYMENT_INFO.seabank.account}</div>
+                <div class="bank-holder">${PAYMENT_INFO.seabank.holder}</div>
+              </div>
+              <button type="button" class="copy-btn" onclick="copyText('${PAYMENT_INFO.seabank.account}', this, '${t.copy}')">${t.copy}</button>
+            </div>
+          </div>
+          <a class="confirm-wa-btn" href="${waHref}" target="_blank" rel="noopener">
+            <span>💬</span> <span>${t.confirmWa(formattedArrivedDue)}</span>
+          </a>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
