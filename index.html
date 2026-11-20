@@ -381,6 +381,28 @@
       background: var(--blue-dark);
     }
 
+    .price-info-box {
+      background: var(--card);
+      border: 1px solid var(--blue-border);
+      border-radius: 14px;
+      padding: 13px 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.04);
+    }
+
+    .price-info-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue-dark);
+      margin-bottom: 4px;
+    }
+
+    .price-info-desc {
+      font-size: 12px;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
     .payment-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -768,6 +790,8 @@
         coVarLabel: "Variasi CO",
         openLink: "Buka Link",
         copyLink: "Salin Link",
+        priceInfoTitle: "⚖️ Info Harga PO & Estimasi Berat",
+        priceInfoDesc: "Harga PO merupakan harga estimasi (est) berdasarkan perkiraan berat dan belum bersifat final. Jika berat barang atau tax mengalami kenaikan, harga akan menyesuaikan saat pelunasan.",
         payTitle: `≡ Info Rekening Pelunasan ${BRAND_NAME}`,
         qrisNote: "QRIS > Rp 100.000 wajib +0.3%",
         qrisLabel: "BARCODE QRIS",
@@ -822,6 +846,8 @@
         coVarLabel: "CO Variation",
         openLink: "Open Link",
         copyLink: "Copy Link",
+        priceInfoTitle: "⚖️ PO Price & Estimated Weight Info",
+        priceInfoDesc: "Harga PO merupakan harga estimasi (est) berdasarkan perkiraan berat dan belum bersifat final. Jika berat barang atau tax mengalami kenaikan, harga akan menyesuaikan saat pelunasan.",
         payTitle: `≡ ${BRAND_NAME} Payment Account Info`,
         qrisNote: "QRIS > Rp 100.000 requires +0.3%",
         qrisLabel: "BARCODE QRIS",
@@ -1255,6 +1281,13 @@
         </div>
       ` : "";
 
+      const priceInfoBoxHtml = `
+        <div class="price-info-box">
+          <div class="price-info-title">${t.priceInfoTitle}</div>
+          <div class="price-info-desc">${escapeHtml(t.priceInfoDesc)}</div>
+        </div>
+      `;
+
       const cleanQrisUrl = sanitizeImageUrl(QRIS_IMAGE_URL);
       const qrisBoxHtml = cleanQrisUrl ? `
         <div class="qris-box">
@@ -1315,6 +1348,7 @@
         </div>
         <div class="scroll-hint">${t.scrollHint}</div>
         ${coBoxHtml}
+        ${priceInfoBoxHtml}
         <div class="payment-card">
           <div class="payment-head">
             <div class="payment-title">${t.payTitle}</div>
