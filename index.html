@@ -1032,6 +1032,14 @@
       return fallback;
     }
 
+    function isOrderDone(item) {
+      const doneFlag = String(pickField(item, ["DONE", "done", "statusDone"], "")).trim().toLowerCase();
+      if (["yes", "done", "true", "lunas", "y"].includes(doneFlag)) return true;
+
+      const statusFlag = String(pickField(item, ["Status", "status"], "")).trim().toLowerCase();
+      return statusFlag === "done" || statusFlag === "lunas" || /\bdone\b/.test(statusFlag);
+    }
+
     function isArrivedIna(status) {
       const s = String(status || "").trim().toLowerCase().replace(/\s+/g, " ");
       return s === "arrived ina" || s.includes("arrived ina") || s === "arrived_ina" || s === "arrivedina";
@@ -1039,7 +1047,7 @@
 
     function statusBadgeClass(status) {
       const s = String(status || "").toLowerCase();
-      if (isArrivedIna(s) || s.includes("arriv") || s.includes("indo") || s.includes("ready")) return "b-arrive";
+      if (isArrivedIna(s) || s.includes("arriv") || s.includes("indo") || s.includes("ready") || /\bdone\b/.test(s)) return "b-arrive";
       if (s.includes("otw") || s.includes("ship") || s.includes("flight") || s.includes("sea") || s.includes("wh")) return "b-otw";
       return "b-other";
     }
@@ -1181,10 +1189,9 @@
       const filter = document.getElementById("statusFilter").value;
 
       const filtered = ordersData.filter(item => {
-        const doneFlag = String(pickField(item, ["DONE", "done", "statusDone"], "")).trim().toLowerCase();
-        const isDone = doneFlag === "yes" || doneFlag === "done" || doneFlag === "true" || doneFlag === "lunas";
-        if (filter === "not_done") return !isDone;
-        if (filter === "done") return isDone;
+        const done = isOrderDone(item);
+        if (filter === "not_done") return !done;
+        if (filter === "done") return done;
         return true;
       });
 
@@ -1207,15 +1214,17 @@
         const brg = pickField(item, ["Item", "item", "barang"], "-");
         const qty = pickField(item, ["Jumlah (QTY)", "jumlahQty", "qty", "jumlah"], "-");
         const status = pickField(item, ["Status", "status"], "-");
+        const done = isOrderDone(item);
         const coRaw = pickField(item, ["DONE CO", "doneCo", "done_co", "Yes/No", "yes/no", "Yes No", "yesNo", "CO", "co", "Status CO", "statusCo", "Sudah CO", "sudahCo", "CO Shopee", "coShopee"], "");
         const coBadge = normalizeCoFlag(coRaw);
         const paid = parseNum(pickField(item, ["DP", "dp", "sudahBayar", "paid"], 0));
         const total = parseNum(pickField(item, ["Total", "total"], 0));
         const rawDue = pickField(item, ["Pelunasan", "pelunasan", "balance"], null);
-        const due = rawDue !== null ? parseNum(rawDue) : (total - paid);
+        const rawCalculatedDue = rawDue !== null ? parseNum(rawDue) : (total - paid);
+        const effectiveDue = done ? 0 : rawCalculatedDue;
 
         totalAmt += total;
-        totalDueAll += due;
+        totalDueAll += effectiveDue;
 
         if (isArrivedIna(status)) {
           arrivedCount += 1;
@@ -1225,13 +1234,13 @@
           if (!singleVariasiCo) {
             singleVariasiCo = String(pickField(item, ["Variasi CO", "variasiCo", "variasi_co", "variasi", "variation"], "")).trim();
           }
-          if (due > 0) {
-            arrivedDueTotal += due;
-            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) [DONE CO: ${coBadge.label}] -> Pelunasan: ${formatIDR(due)}`);
+          if (!done && effectiveDue > 0) {
+            arrivedDueTotal += effectiveDue;
+            arrivedItemsSummary.push(`- [${batch}] ${brg} (x${qty}) [DONE CO: ${coBadge.label}] -> Pelunasan: ${formatIDR(effectiveDue)}`);
           }
         }
 
-        const dueClass = due < 0 ? "neg" : (due === 0 ? "done-ok" : "");
+        const dueClass = effectiveDue < 0 ? "neg" : (effectiveDue === 0 ? "done-ok" : "");
         const badgeCls = statusBadgeClass(status);
 
         return `
@@ -1243,7 +1252,7 @@
             <td><span class="badge ${badgeCls}">${escapeHtml(status)}</span></td>
             <td class="num">${total === 0 ? "-" : formatIDR(total)}</td>
             <td class="num">${formatIDR(paid)}</td>
-            <td class="num ${dueClass}">${formatIDR(due)}</td>
+            <td class="num ${dueClass}">${formatIDR(effectiveDue)}</td>
             <td class="col-co"><span class="badge ${coBadge.cls}">${escapeHtml(coBadge.label)}</span></td>
             <td class="col-proof">${escapeHtml(t.proofNote)}</td>
           </tr>
